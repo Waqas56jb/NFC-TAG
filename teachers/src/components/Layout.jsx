@@ -65,9 +65,6 @@ export function Layout() {
             <h1>{t('brand')}</h1>
             <p>{t('school')}</p>
           </div>
-          <button className="ghost sidebar-close" onClick={() => setOpen(false)} aria-label={t('closeMenu')}>
-            ✕
-          </button>
         </div>
         <nav className="nav-list" onClick={() => setOpen(false)}>
           <NavLink to="/desk" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
