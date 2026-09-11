@@ -18,7 +18,7 @@ async function request(path, options = {}) {
     return { data: null, error: { message: 'Missing API URL or key in .env' } }
   }
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), options.timeoutMs || 15000)
+  const timer = setTimeout(() => controller.abort(), options.timeoutMs || 45000)
   try {
     const res = await fetch(`${url}/rest/v1/${path}`, {
       method: options.method || 'GET',

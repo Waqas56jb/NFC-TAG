@@ -110,13 +110,15 @@ export function Layout() {
             </button>
             <strong>{t('brand')}</strong>
           </div>
-          <AnnounceBell
-            announcements={inbox}
-            user={teacher}
-            canPost
-            onPost={postAnnouncement}
-            onDelete={deleteAnnouncement}
-          />
+          <div className="head-actions">
+            <AnnounceBell
+              announcements={inbox}
+              user={teacher}
+              canPost
+              onPost={postAnnouncement}
+              onDelete={deleteAnnouncement}
+            />
+          </div>
         </div>
         <div className="page">
           <Outlet />
