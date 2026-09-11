@@ -1,6 +1,6 @@
 /**
  * NFC-TAG Vercel entry — health + status.
- * App data lives on Supabase REST (not this Node process).
+ * Data traffic: /rest/v1/* → Supabase (see api/rest/[...path].js).
  */
 export default {
   async fetch(request) {
@@ -18,8 +18,9 @@ export default {
     const body = {
       ok: true,
       service: 'nfc-tag-server',
-      message: 'Backend is up. Frontends talk to Supabase REST for data.',
-      supabase: process.env.SUPABASE_URL || null,
+      message: 'Backend is up. Use /rest/v1/* from the frontends.',
+      rest: '/rest/v1',
+      supabaseConfigured: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
       time: new Date().toISOString(),
     }
 

@@ -1,4 +1,5 @@
-const url = import.meta.env.VITE_SUPABASE_URL
+/** Backend host (Vercel proxy). Falls back to direct Supabase only if unset. */
+const url = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 function headers(extra = {}) {
