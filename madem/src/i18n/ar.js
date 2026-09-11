@@ -131,7 +131,7 @@ export const ar = {
   editThisStudent: 'تعديل هذا الطالب',
   downloadNfcTag: 'تنزيل بطاقة NFC',
   downloadingNfc: 'جارٍ تجهيز البطاقة…',
-  toastNfcDownloaded: 'تم تنزيل وسم أمان (بدون QR). تم نسخ رابط NFC — اكتبه على الشريحة داخل الوسم ثم المس بالهاتف.',
+  toastNfcDownloaded: 'تم تنزيل وسم أمان الأبيض (بدون QR). الرمز الفريد تحت الكلمة — افتح /scan للكشف بالكاميرا.',
   errNfcDownload: 'تعذر تنزيل بطاقة NFC. حاول مرة أخرى.',
   crumbsClasses: 'الفصول',
   audit: 'التدقيق',

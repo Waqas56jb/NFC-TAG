@@ -1,7 +1,9 @@
-/** Small AMAN shirt tag — Arabic أمان only (no QR). Unique URL is for NFC chip write. */
+/** Small AMAN shirt tag — white bg, clear Arabic أمان + OCR-readable unique code (no QR). */
 
 export function studentTagCode(student) {
-  return String(student?.tagCode || student?.id || '').replace(/[^a-zA-Z0-9_-]/g, '')
+  return String(student?.tagCode || student?.id || '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toUpperCase()
 }
 
 export function publicTagBase() {
@@ -31,70 +33,52 @@ function safeFileName(name) {
     .slice(0, 48) || 'student'
 }
 
-function roundRect(ctx, x, y, w, h, r) {
-  const radius = Math.min(r, w / 2, h / 2)
-  ctx.beginPath()
-  ctx.moveTo(x + radius, y)
-  ctx.arcTo(x + w, y, x + w, y + h, radius)
-  ctx.arcTo(x + w, y + h, x, y + h, radius)
-  ctx.arcTo(x + w, y + h, x, y, radius)
-  ctx.arcTo(x, y, x + w, y, radius)
-  ctx.closePath()
-}
-
 /**
- * Downloads the small white shirt tag with straight (horizontal) Arabic أمان.
- * Same look for every student. Phone camera cannot read this — write `url`
- * onto the NFC chip inside the physical tag (tap phone to open child page).
+ * High-contrast white tag for print + camera OCR (no QR).
+ * Camera apps detect the unique CODE under أمان via the in-app /scan page.
  */
 export async function downloadNfcTag(student) {
+  const code = studentTagCode(student)
   const url = studentPublicUrl(student)
-  if (!url) throw new Error('Student tag code missing.')
+  if (!code || !url) throw new Error('Student tag code missing.')
 
-  // Compact fabric label — horizontal so أمان reads seedha (normal Arabic)
-  const W = 900
-  const H = 420
+  const W = 1000
+  const H = 560
   const canvas = document.createElement('canvas')
   canvas.width = W
   canvas.height = H
   const ctx = canvas.getContext('2d')
 
-  // Soft print backdrop
-  ctx.fillStyle = '#ece8e1'
+  // Pure white — max contrast for camera
+  ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, W, H)
 
-  // White tag body
-  const pad = 36
-  roundRect(ctx, pad, pad, W - pad * 2, H - pad * 2, 28)
-  ctx.fillStyle = '#ffffff'
-  ctx.fill()
-  ctx.strokeStyle = '#cfc8bc'
-  ctx.lineWidth = 3
-  ctx.stroke()
+  // Thin black frame so edges are clear when photographed
+  ctx.strokeStyle = '#000000'
+  ctx.lineWidth = 8
+  ctx.strokeRect(4, 4, W - 8, H - 8)
 
-  // Straight connected Arabic — no rotate, no letter stack
-  ctx.save()
-  ctx.fillStyle = '#111111'
+  // Straight connected Arabic — seedha, high contrast
+  ctx.fillStyle = '#000000'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.direction = 'rtl'
-  // Prefer fonts that render Arabic correctly on Windows/macOS
-  ctx.font = '700 168px "Segoe UI", Tahoma, "Traditional Arabic", "Noto Naskh Arabic", Arial, sans-serif'
-  ctx.fillText('أمان', W / 2, H / 2 - 8)
-  ctx.restore()
+  ctx.font = '700 200px "Segoe UI", Tahoma, "Traditional Arabic", "Arial", sans-serif'
+  ctx.fillText('أمان', W / 2, 175)
 
-  // Tiny English mark under the word (optional brand, still horizontal)
   ctx.direction = 'ltr'
-  ctx.fillStyle = '#8a8a8a'
-  ctx.font = '600 22px Manrope, Arial, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText('AMAN', W / 2, H / 2 + 110)
+  ctx.font = '800 36px Arial, Helvetica, sans-serif'
+  ctx.fillStyle = '#000000'
+  ctx.fillText('AMAN', W / 2, 290)
 
-  // Invisible-for-print programming code (very faint) — NFC chip gets full URL via copy
-  ctx.fillStyle = 'rgba(0,0,0,0.06)'
-  ctx.font = '500 14px ui-monospace, Consolas, monospace'
-  ctx.fillText(studentTagCode(student).slice(0, 12).toUpperCase(), W / 2, H - 52)
+  // Unique code — large, OCR-friendly (camera detects THIS, not a QR)
+  ctx.font = '800 64px "Courier New", Consolas, monospace'
+  ctx.fillStyle = '#000000'
+  ctx.fillText(code, W / 2, 400)
+
+  ctx.font = '600 22px Arial, Helvetica, sans-serif'
+  ctx.fillStyle = '#222222'
+  ctx.fillText('Open AMAN Scan · point camera at this code', W / 2, 480)
 
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
   if (!blob) throw new Error('Could not create tag image.')
@@ -105,7 +89,7 @@ export async function downloadNfcTag(student) {
   a.click()
   a.remove()
   URL.revokeObjectURL(a.href)
-  return { ok: true, url }
+  return { ok: true, url, code }
 }
 
 export async function copyStudentTagUrl(student) {
@@ -122,4 +106,18 @@ export async function copyStudentTagUrl(student) {
     input.remove()
   }
   return { ok: true, url }
+}
+
+/** Extract a tag code from OCR / TextDetector output. */
+export function extractTagCodeFromText(raw) {
+  const text = String(raw || '').toUpperCase().replace(/[^A-Z0-9\s]/g, ' ')
+  const tokens = text.split(/\s+/).filter(Boolean)
+  for (const token of tokens) {
+    if (/^[A-Z0-9]{8,16}$/.test(token) && !/^(AMAN|OPEN|SCAN|CAMERA|CODE|THIS)$/.test(token)) {
+      return token
+    }
+  }
+  const joined = text.replace(/\s+/g, '')
+  const m = joined.match(/[A-Z0-9]{8,16}/)
+  return m ? m[0] : ''
 }

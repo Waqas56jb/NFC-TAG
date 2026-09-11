@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Navigate, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { useStudent } from '../context/StudentContext'
 import { LanguageToggle } from '../i18n/LanguageToggle'
 import { useI18n } from '../i18n/I18nContext'
@@ -84,6 +84,9 @@ export function Login() {
           <button className="primary app-cta" type="submit">
             {asParent ? t('enterParentPortal') : t('enterDesk')}
           </button>
+          <Link className="scan-login-link" to="/scan">
+            {t('scanTagCta')}
+          </Link>
           <div className="demo-box">
             <strong>{t('demoLogin')}</strong>
             <div>{t('demoS1')}</div>
