@@ -14,7 +14,8 @@
     "db:group-photos": "node scripts/setup-group-photos.mjs",
     "db:dms": "node scripts/setup-dms.mjs",
     "db:desk": "node scripts/setup-teacher-desk.mjs",
-    "db:student-leaves": "node scripts/setup-student-leaves.mjs"
+    "db:student-leaves": "node scripts/setup-student-leaves.mjs",
+    "db:student-tags": "node scripts/setup-student-tags.mjs"
   },
   "dependencies": {
     "pg": "^8.23.0"

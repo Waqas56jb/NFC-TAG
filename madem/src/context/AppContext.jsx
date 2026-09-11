@@ -199,6 +199,7 @@ export function AppProvider({ children }) {
     ready,
     bootError,
     boot,
+    notify,
     hasSession: Boolean(session),
     isMadam: user?.role === 'madam',
     login,

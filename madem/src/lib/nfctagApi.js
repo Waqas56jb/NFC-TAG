@@ -73,6 +73,7 @@ function mapStudent(row) {
     photo: row.photo || '',
     loginEmail: row.login_email || '',
     loginPassword: row.password || '',
+    tagCode: row.tag_code || row.id,
     createdById: row.created_by,
     createdByName: row.created_by_name,
     createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
@@ -387,10 +388,23 @@ export function createNftagApi(supabase) {
         .replace(/^\.+|\.+$/g, '') || 'student'
       row.login_email = `${base}@student.nfctag.edu`
       row.password = 'Student@11'
-      const { error } = await supabase.from('nfctag_students').insert(row)
-      if (error) return fail(error)
+      row.tag_code =
+        payload.tagCode ||
+        `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`.replace(/[^a-z0-9]/gi, '').slice(0, 12).toUpperCase()
+      const { data, error } = await supabase.from('nfctag_students').insert(row).select('*').single()
+      if (error) {
+        // Older DBs without tag_code: retry without the column.
+        if (String(error.message || '').includes('tag_code')) {
+          delete row.tag_code
+          const retry = await supabase.from('nfctag_students').insert(row).select('*').single()
+          if (retry.error) return fail(retry.error)
+          await addActivity(user, 'created', 'student', payload.name.trim(), `Added student to ${classLabel}`)
+          return { ok: true, student: mapStudent(retry.data) }
+        }
+        return fail(error)
+      }
       await addActivity(user, 'created', 'student', payload.name.trim(), `Added student to ${classLabel}`)
-      return { ok: true }
+      return { ok: true, student: mapStudent(data) }
     },
     async patchStudent(id, payload, user) {
       if (!payload.name?.trim()) return { ok: false, error: 'Student name is required.' }

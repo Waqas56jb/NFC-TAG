@@ -32,6 +32,7 @@ function mapStudent(row) {
     emergencyPhone: row.emergency_phone || '',
     notes: row.notes || '',
     photo: row.photo || '',
+    tagCode: row.tag_code || row.id,
   }
 }
 
@@ -82,6 +83,22 @@ export function createHub(rest) {
       if (res.error) return { ok: false, error: res.error.message }
       const row = (res.data || [])[0]
       if (!row) return { ok: false, error: 'Student not found.' }
+      return { ok: true, student: mapStudent(row) }
+    },
+    async fetchPublicStudent(code) {
+      const key = String(code || '').trim()
+      if (!key) return { ok: false, error: 'Missing child code.' }
+      // Prefer tag_code when column exists; fall back to id (UUID).
+      let res = await rest.get(
+        'nfctag_students',
+        `?select=id,name,photo,parent_name,parent_phone,emergency_phone,blood_group,notes,grade_id,section_id,tag_code&or=(tag_code.eq.${encodeURIComponent(key)},id.eq.${encodeURIComponent(key)})&limit=1`,
+      )
+      if (res.error) {
+        res = await rest.get('nfctag_students', `?select=*&id=eq.${encodeURIComponent(key)}&limit=1`)
+      }
+      if (res.error) return { ok: false, error: res.error.message }
+      const row = (res.data || [])[0]
+      if (!row) return { ok: false, error: 'Child not found.' }
       return { ok: true, student: mapStudent(row) }
     },
     async listMyAttendance(gradeId, sectionId, studentId) {

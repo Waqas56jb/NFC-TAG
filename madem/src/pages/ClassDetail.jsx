@@ -8,13 +8,14 @@ import { StaffDmModal } from '../components/StaffDmModal'
 import { StudentForm, StudentView } from '../components/StudentForm'
 import { useApp } from '../context/AppContext'
 import { useI18n } from '../i18n/I18nContext'
+import { downloadNfcTag } from '../lib/nfcTag'
 import { resolveClassRoute } from '../lib/school'
 import { emptyStudent, studentFromRecord } from '../lib/studentFields'
 
 export function ClassDetail() {
   const { gradeSlug, sectionSlug } = useParams()
   const location = useLocation()
-  const { store, user, createStudent, updateStudent, deleteStudent, saveAttendance, openDmThread, loadDmMessages, postDmMessage } = useApp()
+  const { store, user, createStudent, updateStudent, deleteStudent, saveAttendance, openDmThread, loadDmMessages, postDmMessage, notify } = useApp()
   const { t, tx } = useI18n()
   const match = resolveClassRoute(store.grades, gradeSlug, sectionSlug)
   const gradeId = match?.gradeId
@@ -27,6 +28,7 @@ export function ClassDetail() {
   const [form, setForm] = useState(emptyStudent)
   const [error, setError] = useState('')
   const [tab, setTab] = useState('students')
+  const [tagBusyId, setTagBusyId] = useState('')
 
   const grade = (store.grades || []).find((g) => g.id === gradeId)
   const section = grade?.sections.find((s) => s.id === sectionId)
@@ -71,6 +73,23 @@ export function ClassDetail() {
     setEditing(null)
     setForm(emptyStudent)
     setError('')
+    if (!editing && result.student) {
+      await handleDownloadTag(result.student)
+      setViewing(result.student)
+    }
+  }
+
+  async function handleDownloadTag(student) {
+    if (!student?.id) return
+    setTagBusyId(student.id)
+    try {
+      await downloadNfcTag(student, { schoolName: t('school') })
+      notify?.(t('toastNfcDownloaded'))
+    } catch (err) {
+      notify?.(err.message || t('errNfcDownload'), 'bad')
+    } finally {
+      setTagBusyId('')
+    }
   }
 
   return (
@@ -167,6 +186,14 @@ export function ClassDetail() {
                       <button className="ghost" onClick={() => setViewing(student)}>
                         {t('view')}
                       </button>
+                      <button
+                        className="ghost"
+                        type="button"
+                        disabled={tagBusyId === student.id}
+                        onClick={() => handleDownloadTag(student)}
+                      >
+                        {tagBusyId === student.id ? t('downloadingNfc') : t('downloadNfcTag')}
+                      </button>
                       <button className="ghost" onClick={() => openEdit(student)}>
                         {t('edit')}
                       </button>
@@ -224,6 +251,14 @@ export function ClassDetail() {
                 setViewing(null)
               }}
             />
+            <button
+              className="ghost"
+              type="button"
+              disabled={tagBusyId === viewing.id}
+              onClick={() => handleDownloadTag(viewing)}
+            >
+              {tagBusyId === viewing.id ? t('downloadingNfc') : t('downloadNfcTag')}
+            </button>
             <button className="primary" type="button" onClick={() => openEdit(viewing)}>
               {t('editThisStudent')}
             </button>

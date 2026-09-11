@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useStudent } from '../context/StudentContext'
 import { useI18n } from '../i18n/I18nContext'
 import { genderLabel } from '../i18n/helpers'
 import { displayPhoto } from '../lib/avatar'
+import { downloadNfcTag } from '../lib/nfcTag'
 import { classLabel, prettyDate } from '../lib/school'
 
 function Row({ label, value, href }) {
@@ -42,12 +44,27 @@ function Section({ title, children, icon }) {
 export function Profile() {
   const { student, grades, logout } = useStudent()
   const { t, lang } = useI18n()
+  const [tagBusy, setTagBusy] = useState(false)
+  const [tagMsg, setTagMsg] = useState('')
   if (!student) return null
 
   const klass = classLabel(grades, student.gradeId, student.sectionId)
   const dob = student.dob ? prettyDate(student.dob, lang) || student.dob : ''
   const portrait = displayPhoto(student.photo, student.name, student.id || student.email)
   const initial = (student.name || '?').trim().charAt(0).toUpperCase()
+
+  async function handleDownloadTag() {
+    setTagBusy(true)
+    setTagMsg('')
+    try {
+      await downloadNfcTag(student, { schoolName: t('school') })
+      setTagMsg(t('toastNfcDownloaded'))
+    } catch (err) {
+      setTagMsg(err.message || t('errNfcDownload'))
+    } finally {
+      setTagBusy(false)
+    }
+  }
 
   return (
     <section className="app-screen pf-screen">
@@ -60,6 +77,10 @@ export function Profile() {
         <h2>{student.name}</h2>
         <p className="pf-class">{klass || t('studentRole')}</p>
         <p className="pf-note">{t('profileReadOnly')}</p>
+        <button className="pf-nfc-btn" type="button" disabled={tagBusy} onClick={handleDownloadTag}>
+          {tagBusy ? t('downloadingNfc') : t('downloadNfcTag')}
+        </button>
+        {tagMsg ? <p className="pf-nfc-msg">{tagMsg}</p> : null}
       </article>
 
       <div className="pf-quick">
