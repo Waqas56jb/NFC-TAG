@@ -33,7 +33,7 @@ function mapStudent(row) {
     emergencyPhone: row.emergency_phone || '',
     notes: row.notes || '',
     photo: row.photo || '',
-    tagCode: row.tag_code || row.id,
+    tagCode: row.tag_code || '',
   }
 }
 
@@ -89,14 +89,34 @@ export function createHub(rest) {
     async fetchPublicStudent(code) {
       const key = String(code || '').trim()
       if (!key) return { ok: false, error: 'Missing child code.' }
-      // Prefer tag_code when column exists; fall back to id (UUID).
+
+      const isUuid =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(key)
+
+      // Never OR tag_code with id.eq(non-uuid) — PostgREST rejects invalid UUID and fails the whole query.
       let res = await rest.get(
         'nfctag_students',
-        `?select=id,name,photo,parent_name,parent_phone,parent_email,emergency_phone,blood_group,allergies,notes,grade_id,section_id,tag_code&or=(tag_code.eq.${encodeURIComponent(key)},id.eq.${encodeURIComponent(key)})&limit=1`,
+        `?select=*&tag_code=eq.${encodeURIComponent(key)}&limit=1`,
       )
-      if (res.error) {
+      if ((!res.error && !(res.data || []).length) || res.error) {
+        // Case-insensitive tag_code (QR may upper/lower)
+        res = await rest.get(
+          'nfctag_students',
+          `?select=*&tag_code=ilike.${encodeURIComponent(key)}&limit=1`,
+        )
+      }
+      if (((!res.error && !(res.data || []).length) || res.error) && isUuid) {
         res = await rest.get('nfctag_students', `?select=*&id=eq.${encodeURIComponent(key)}&limit=1`)
       }
+      // Legacy QRs that used hyphen-stripped UUID as code
+      if ((!res.error && !(res.data || []).length) || res.error) {
+        const hex = key.replace(/[^a-f0-9]/gi, '')
+        if (hex.length === 32) {
+          const uuid = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+          res = await rest.get('nfctag_students', `?select=*&id=eq.${encodeURIComponent(uuid)}&limit=1`)
+        }
+      }
+
       if (res.error) return { ok: false, error: res.error.message }
       const row = (res.data || [])[0]
       if (!row) return { ok: false, error: 'Child not found.' }

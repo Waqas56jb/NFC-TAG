@@ -74,7 +74,7 @@ function mapStudent(row) {
     photo: row.photo || '',
     loginEmail: row.login_email || '',
     loginPassword: row.password || '',
-    tagCode: row.tag_code || row.id,
+    tagCode: row.tag_code || '',
     createdById: row.created_by,
     createdByName: row.created_by_name,
     createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),

@@ -1,9 +1,16 @@
 /** Tag download = QR only. Unique /c/{code} profile URL encoded inside. */
 
 export function studentTagCode(student) {
-  return String(student?.tagCode || student?.id || '')
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .toUpperCase()
+  // Prefer real tag_code from DB; do not strip hyphens from UUIDs into a fake code.
+  const raw = String(student?.tagCode || '').trim()
+  if (raw && raw !== String(student?.id || '')) {
+    return raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() || raw
+  }
+  const id = String(student?.id || '').trim()
+  if (!id) return ''
+  // If only id exists, keep UUID form so /c/{uuid} lookup works
+  if (/^[0-9a-f-]{36}$/i.test(id)) return id.toLowerCase()
+  return id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
 }
 
 export function publicTagBase() {
