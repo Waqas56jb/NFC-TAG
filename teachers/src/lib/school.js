@@ -73,8 +73,6 @@ export function teacherMatchIds(store, teacher) {
   const ids = new Set([teacher.id])
   const live = (store.teachers || []).find((t) => t.email && t.email === teacher.email)
   if (live) ids.add(live.id)
-  if (teacher.email === 'ahmed.raza@nfctag.edu') ids.add('tch_ahmed')
-  if (teacher.email === 'sara.malik@nfctag.edu') ids.add('tch_sara')
   return ids
 }
 

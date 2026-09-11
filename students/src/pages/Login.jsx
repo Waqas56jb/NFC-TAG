@@ -57,7 +57,7 @@ export function Login() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@student.nfctag.edu"
+              placeholder={t('emailPlaceholder')}
               autoComplete="username"
               required
             />
@@ -87,12 +87,6 @@ export function Login() {
           <Link className="scan-login-link" to="/scan">
             {t('scanTagCta')}
           </Link>
-          <div className="demo-box">
-            <strong>{t('demoLogin')}</strong>
-            <div>{t('demoS1')}</div>
-            <div>{t('demoS2')}</div>
-            <p className="demo-parent-note">{t('demoParentNote')}</p>
-          </div>
         </form>
       </div>
     </div>

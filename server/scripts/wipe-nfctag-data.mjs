@@ -50,7 +50,7 @@ try {
   await client.query(
     `INSERT INTO nfctag_madam (name, email, password)
      VALUES ($1, $2, $3)`,
-    ['Principal Madam', 'madam@nfctag.edu', 'Madam@123'],
+    ['Principal Madam', 'madam@nfctag.edu', 'Madam@Test1'],
   )
 
   await client.query('COMMIT')
@@ -70,7 +70,7 @@ for (const [k, v] of Object.entries(counts)) {
   console.log(`  ${k}: ${v}`)
 }
 console.log('')
-console.log('Madam login (empty school): madam@nfctag.edu / Madam@123')
+console.log('Madam login (empty school): madam@nfctag.edu / Madam@Test1')
 console.log('Add real classes, teachers, and students from Madam Desk.')
 
 await client.end()

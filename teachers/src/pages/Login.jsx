@@ -50,7 +50,8 @@ export function Login() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="ahmed.raza@nfctag.edu"
+              placeholder={t('emailPlaceholder')}
+              autoComplete="username"
               required
             />
           </Field>
@@ -60,6 +61,7 @@ export function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('yourPassword')}
+              autoComplete="current-password"
               required
             />
           </Field>
@@ -75,11 +77,6 @@ export function Login() {
           <button className="primary" type="submit" style={{ width: '100%', marginTop: 18 }}>
             {t('enterDesk')}
           </button>
-          <div className="demo-box">
-            <strong>{t('demoLogin')}</strong>
-            <div>{t('demoT1')}</div>
-            <div>{t('demoT2')}</div>
-          </div>
         </form>
       </section>
     </div>
