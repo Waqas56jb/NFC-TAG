@@ -9,6 +9,7 @@
     "db:attendance": "node scripts/seed-attendance-history.mjs",
     "db:groups": "node scripts/setup-groups.mjs",
     "db:group-photos": "node scripts/setup-group-photos.mjs",
+    "db:dms": "node scripts/setup-dms.mjs",
     "db:desk": "node scripts/setup-teacher-desk.mjs"
   },
   "dependencies": {

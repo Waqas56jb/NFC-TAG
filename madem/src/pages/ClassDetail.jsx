@@ -3,6 +3,7 @@ import { Navigate, useLocation, useParams } from 'react-router-dom'
 import { AttendanceBoard } from '../components/AttendanceBoard'
 import { Crumbs } from '../components/Crumbs'
 import { Modal } from '../components/Modal'
+import { StaffDmModal } from '../components/StaffDmModal'
 import { StudentForm, StudentView } from '../components/StudentForm'
 import { useApp } from '../context/AppContext'
 import { useI18n } from '../i18n/I18nContext'
@@ -12,7 +13,7 @@ import { emptyStudent, studentFromRecord } from '../lib/studentFields'
 export function ClassDetail() {
   const { gradeSlug, sectionSlug } = useParams()
   const location = useLocation()
-  const { store, user, createStudent, updateStudent, deleteStudent, saveAttendance } = useApp()
+  const { store, user, createStudent, updateStudent, deleteStudent, saveAttendance, openDmThread, loadDmMessages, postDmMessage } = useApp()
   const { t, tx } = useI18n()
   const match = resolveClassRoute(store.grades, gradeSlug, sectionSlug)
   const gradeId = match?.gradeId
@@ -21,6 +22,7 @@ export function ClassDetail() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState(null)
   const [viewing, setViewing] = useState(null)
+  const [messaging, setMessaging] = useState(null)
   const [form, setForm] = useState(emptyStudent)
   const [error, setError] = useState('')
   const [tab, setTab] = useState('students')
@@ -162,6 +164,9 @@ export function ClassDetail() {
                       <button className="ghost" onClick={() => setViewing(student)}>
                         {t('view')}
                       </button>
+                      <button className="ghost" onClick={() => setMessaging(student)}>
+                        {t('message')}
+                      </button>
                       <button className="ghost" onClick={() => openEdit(student)}>
                         {t('edit')}
                       </button>
@@ -217,6 +222,16 @@ export function ClassDetail() {
           </div>
         </Modal>
       ) : null}
+
+      <StaffDmModal
+        open={Boolean(messaging)}
+        student={messaging}
+        user={user}
+        onClose={() => setMessaging(null)}
+        openThread={openDmThread}
+        loadMessages={loadDmMessages}
+        onPost={postDmMessage}
+      />
     </>
   )
 }

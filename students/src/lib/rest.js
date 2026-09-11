@@ -41,5 +41,6 @@ async function request(path, options = {}) {
 export const rest = {
   get(table, query = '', options = {}) { return request(`${table}${query}`, options) },
   insert(table, body) { return request(table, { method: 'POST', body: Array.isArray(body) ? body : [body] }) },
+  patch(table, query, body) { return request(`${table}${query}`, { method: 'PATCH', body }) },
   remove(table, query) { return request(`${table}${query}`, { method: 'DELETE' }) },
 }

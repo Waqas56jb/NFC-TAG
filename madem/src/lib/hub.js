@@ -1,3 +1,5 @@
+import { createDmApi } from './dm'
+
 function mapGroup(row) {
   return {
     id: row.id,
@@ -41,6 +43,7 @@ function mapAnnounce(row) {
 
 export function createHub(rest) {
   return {
+    ...createDmApi(rest),
     async listGroups() {
       const res = await rest.get('nfctag_groups', '?select=*&order=created_at.desc&limit=200')
       if (res.error) return { ok: false, error: res.error.message, groups: [] }

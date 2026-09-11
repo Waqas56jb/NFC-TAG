@@ -161,6 +161,14 @@ export function TeacherProvider({ children }) {
         if (!result.ok) notify(tx(result.error))
         return result
       },
+      loadDmMessages: hub.listDmMessages,
+      openDmThread: hub.openDmThread,
+      async postDmMessage(payload) {
+        if (!teacher) return { ok: false, error: t('errSignIn') }
+        const result = await hub.postDmMessage(payload, { ...teacher, role: 'teacher' })
+        if (!result.ok) notify(tx(result.error))
+        return result
+      },
       async deleteGroupMessage(id) {
         const result = await hub.deleteMessage(id)
         if (!result.ok) notify(tx(result.error))

@@ -38,6 +38,7 @@ export function StudentProvider({ children }) {
   const [groups, setGroups] = useState([])
   const [announcements, setAnnouncements] = useState([])
   const [attendance, setAttendance] = useState([])
+  const [dmThreads, setDmThreads] = useState([])
   const [toast, setToast] = useState(null)
   const [ready, setReady] = useState(false)
   const [bootError, setBootError] = useState('')
@@ -65,6 +66,12 @@ export function StudentProvider({ children }) {
       }
       if (mine?.ok) setAttendance(mine.records)
       else if (!nextStudent?.id) setAttendance([])
+      if (nextStudent?.id) {
+        const dms = await hub.listDmThreadsForStudent(nextStudent.id)
+        if (dms.ok) setDmThreads(dms.threads)
+      } else {
+        setDmThreads([])
+      }
       setBootError('')
       return school
     } catch (err) {
@@ -109,6 +116,7 @@ export function StudentProvider({ children }) {
     clearSession()
     setStudent(null)
     setAttendance([])
+    setDmThreads([])
   }
 
   return (
@@ -119,6 +127,7 @@ export function StudentProvider({ children }) {
         groups,
         attendance,
         announcements,
+        dmThreads,
         allowedCards,
         toast,
         ready,
@@ -127,11 +136,28 @@ export function StudentProvider({ children }) {
         login,
         logout,
         loadMessages: hub.listMessages,
+        loadDmMessages: hub.listDmMessages,
         async postGroupMessage(payload) {
           if (!student) return { ok: false, error: t('errSignIn') }
           const result = await hub.postMessage(payload, student)
           if (!result.ok) notify(tx(result.error))
           return result
+        },
+        async postDmMessage(payload) {
+          if (!student) return { ok: false, error: t('errSignIn') }
+          const result = await hub.postDmMessage(payload, student)
+          if (!result.ok) notify(tx(result.error))
+          else {
+            const dms = await hub.listDmThreadsForStudent(student.id)
+            if (dms.ok) setDmThreads(dms.threads)
+          }
+          return result
+        },
+        async refreshDmThreads() {
+          if (!student?.id) return { ok: true, threads: [] }
+          const dms = await hub.listDmThreadsForStudent(student.id)
+          if (dms.ok) setDmThreads(dms.threads)
+          return dms
         },
       }}
     >

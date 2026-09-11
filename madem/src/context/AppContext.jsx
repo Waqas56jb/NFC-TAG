@@ -243,6 +243,14 @@ export function AppProvider({ children }) {
     teacherDays,
     teacherLeaves,
     loadMessages: hub.listMessages,
+    loadDmMessages: hub.listDmMessages,
+    openDmThread: hub.openDmThread,
+    async postDmMessage(payload) {
+      if (!user) return { ok: false, error: t('errSignIn') }
+      const result = await hub.postDmMessage(payload, user)
+      if (!result.ok) notify(tx(result.error), 'bad')
+      return result
+    },
     async createGroup(payload) {
       if (!user) return { ok: false, error: t('errSignIn') }
       const result = await hub.createGroup(payload, user)

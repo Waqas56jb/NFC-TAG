@@ -1,3 +1,5 @@
+import { createDmApi } from './dm'
+
 function parseMarks(value) {
   if (!value) return {}
   if (typeof value === 'object') return value
@@ -43,6 +45,7 @@ export function createHub(rest) {
     return { id: row.id, title: row.title, body: row.body || '', authorId: row.author_id, authorName: row.author_name, authorRole: row.author_role, createdAt: row.created_at }
   }
   return {
+    ...createDmApi(rest),
     async listGroups() {
       const res = await rest.get('nfctag_groups', '?select=*&order=created_at.desc&limit=200')
       if (res.error) return { ok: false, error: res.error.message, groups: [] }

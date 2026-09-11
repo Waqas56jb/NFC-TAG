@@ -2067,3 +2067,101 @@ html[dir="rtl"] .pf-link {
   width: 100%;
   min-height: 48px;
 }
+
+/* Groups ↔ Chat switch + staff DM */
+.groups-page {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 100%;
+  height: 100%;
+}
+
+.groups-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 4px;
+  margin: 0 2px;
+  border-radius: 16px;
+  background: rgba(20, 36, 28, 0.06);
+  flex-shrink: 0;
+}
+
+.groups-switch button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #6d7a72;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.groups-switch button.on {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 4px 14px rgba(20, 36, 28, 0.08);
+}
+
+.groups-switch button i {
+  position: absolute;
+  top: 6px;
+  inset-inline-end: 10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #c47a3a;
+  color: #fff;
+  font-style: normal;
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+
+.gs-ico {
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  mask: center / contain no-repeat;
+  -webkit-mask: center / contain no-repeat;
+}
+
+.gs-ico.groups {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M5 6.5A2.5 2.5 0 0 1 7.5 4H16a3 3 0 0 1 3 3v6.5a2.5 2.5 0 0 1-2.5 2.5H11l-4 3v-3H7.5A2.5 2.5 0 0 1 5 13z'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M5 6.5A2.5 2.5 0 0 1 7.5 4H16a3 3 0 0 1 3 3v6.5a2.5 2.5 0 0 1-2.5 2.5H11l-4 3v-3H7.5A2.5 2.5 0 0 1 5 13z'/%3E%3C/svg%3E");
+}
+
+.gs-ico.chat {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/%3E%3C/svg%3E");
+}
+
+.phone-app .app-body:has(.groups-page) {
+  display: flex;
+  flex-direction: column;
+  padding-top: 10px;
+}
+
+.phone-app .groups-page .wa-shell {
+  flex: 1;
+  min-height: 0;
+}
+
+.phone-app:has(.dm-shell.room-open) .groups-switch,
+.phone-app:has(.wa-shell.room-open) .groups-switch {
+  display: none;
+}
+
+.phone-app:has(.dm-shell.room-open) .app-body:has(.groups-page) {
+  padding: 0;
+}

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Navigate, useLocation, useParams } from 'react-router-dom'
 import { Crumbs } from '../components/Crumbs'
+import { StaffDmModal } from '../components/StaffDmModal'
 import { useTeacher } from '../context/TeacherContext'
 import { useI18n } from '../i18n/I18nContext'
 import { genderLabel } from '../i18n/helpers'
@@ -62,13 +63,14 @@ export function ClassRoom() {
   const { gradeSlug, sectionSlug } = useParams()
   const location = useLocation()
   const { t, lang } = useI18n()
-  const { school, canOpen, saveAttendance } = useTeacher()
+  const { school, teacher, canOpen, saveAttendance, openDmThread, loadDmMessages, postDmMessage } = useTeacher()
   const match = resolveClassRoute(school.grades, gradeSlug, sectionSlug)
   const gradeId = match?.gradeId
   const sectionId = match?.sectionId
   const [tab, setTab] = useState('attendance')
   const [query, setQuery] = useState('')
   const [viewing, setViewing] = useState(null)
+  const [messaging, setMessaging] = useState(null)
   const [date, setDate] = useState(todayKey())
   const [newDate, setNewDate] = useState(todayKey())
   const [creating, setCreating] = useState(false)
@@ -228,9 +230,14 @@ export function ClassRoom() {
                         <td>{student.parentPhone || '—'}</td>
                         <td>{student.nic || '—'}</td>
                         <td>
-                          <button className="ghost" onClick={() => setViewing(student)}>
-                            {t('view')}
-                          </button>
+                          <div className="row-actions">
+                            <button className="ghost" onClick={() => setViewing(student)}>
+                              {t('view')}
+                            </button>
+                            <button className="ghost" onClick={() => setMessaging(student)}>
+                              {t('message')}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -355,10 +362,23 @@ export function ClassRoom() {
               <button className="ghost" onClick={() => setViewing(null)}>
                 {t('close')}
               </button>
+              <button className="primary" onClick={() => { setMessaging(viewing); setViewing(null) }}>
+                {t('message')}
+              </button>
             </div>
           </div>
         </div>
       ) : null}
+
+      <StaffDmModal
+        open={Boolean(messaging)}
+        student={messaging}
+        user={teacher}
+        onClose={() => setMessaging(null)}
+        openThread={openDmThread}
+        loadMessages={loadDmMessages}
+        onPost={postDmMessage}
+      />
     </>
   )
 }
