@@ -478,7 +478,7 @@ export function createNftagApi(supabase) {
 
   if (!supabase) {
     const missingEnv = {
-      message: 'Missing Supabase URL or key. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel.',
+      message: 'Missing API key. Set VITE_SUPABASE_ANON_KEY in Vercel (API host is nfc-server-gamma).',
     }
     const safe = ['fetchSchool', 'loginStaff', 'loginTeacher', 'fail', 'studentRow']
     return new Proxy(api, {
