@@ -1507,9 +1507,12 @@ td.hot {
 
 .wa-shell {
   display: grid;
-  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
-  gap: 14px;
-  min-height: calc(100dvh - 120px);
+  grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
+  gap: 12px;
+  height: min(720px, calc(100dvh - 160px));
+  max-height: calc(100dvh - 140px);
+  min-height: 420px;
+  overflow: hidden;
 }
 
 .wa-list,
@@ -2109,5 +2112,125 @@ td.hot {
 .student-leave-card.status-pending {
   border-color: #e6c98a;
   box-shadow: 0 0 0 1px rgba(196, 122, 58, 0.12);
+}
+
+.staff-chat-tabs button {
+  border: 0;
+  background: #f3ead8;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.staff-chat-tabs button.on {
+  background: var(--ink, #14241c);
+  color: #f4efe6;
+}
+.staff-chat-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(200px, 260px) minmax(0, 1fr);
+  gap: 10px;
+  overflow: hidden;
+}
+.staff-chat-desk.mode-history .staff-chat-grid {
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+}
+.staff-chat-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid #eadfca;
+  border-radius: 14px;
+  background: #faf7f1;
+}
+.staff-chat-col-head {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eadfca;
+  flex-shrink: 0;
+}
+.staff-chat-col-head strong { display: block; font-size: 0.95rem; }
+.staff-chat-col-head .muted { margin: 2px 0 0; font-size: 0.78rem; }
+.staff-chat-col-head.room-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+}
+.staff-chat-scroll,
+.staff-chat-thread {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.staff-chat-thread {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f6f1e8;
+}
+.staff-chat-row {
+  width: 100%;
+  text-align: start;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(234, 223, 202, 0.7);
+  font: inherit;
+  color: inherit;
+}
+.staff-chat-row:hover,
+.staff-chat-row.on {
+  background: #efe6d4;
+}
+.staff-chat-composer {
+  flex-shrink: 0;
+  background: #fff;
+}
+.staff-chat-back { display: none; }
+
+@media (max-width: 1100px) {
+  .staff-chat-grid {
+    grid-template-columns: minmax(160px, 200px) minmax(180px, 220px) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .groups-page {
+    height: auto;
+    max-height: none;
+    min-height: calc(100dvh - 110px);
+  }
+  .groups-page .wa-shell,
+  .groups-page .staff-chat-desk {
+    height: calc(100dvh - 150px);
+    max-height: calc(100dvh - 150px);
+  }
+  .staff-chat-grid {
+    grid-template-columns: 1fr;
+  }
+  .staff-chat-back { display: inline-flex !important; margin-bottom: 6px; }
+  .staff-chat-desk.mobile-sections .staff-chat-students,
+  .staff-chat-desk.mobile-sections .staff-chat-room { display: none; }
+  .staff-chat-desk.mobile-students .staff-chat-sections,
+  .staff-chat-desk.mobile-students .staff-chat-room { display: none; }
+  .staff-chat-desk.mobile-room .staff-chat-sections,
+  .staff-chat-desk.mobile-room .staff-chat-students { display: none; }
+  .staff-chat-desk.mode-history.mobile-sections .staff-chat-room { display: none; }
+  .staff-chat-desk.mode-history.mobile-room .staff-chat-sections { display: none; }
+  .staff-chat-desk.mode-history.mobile-room .staff-chat-room { display: flex; }
 }
 

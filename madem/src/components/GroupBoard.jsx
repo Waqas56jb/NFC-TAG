@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChatIconButton } from './ChatIconButton'
 import { displayPhoto } from '../lib/avatar'
 import { readPhoto } from '../lib/photo'
 import { readShareFile } from '../lib/fileShare'
@@ -14,7 +13,6 @@ function GroupAvatar({ group }) {
 export function GroupBoard({
   groups,
   grades,
-  students = [],
   allowedCards = null,
   user,
   canCreate = false,
@@ -26,7 +24,6 @@ export function GroupBoard({
   onPost,
   onDelete,
   onUpdatePhoto,
-  onMessageStudent,
 }) {
   const { t, lang, tx } = useI18n()
   const cards = allowedCards || listClassCards(grades)
@@ -48,16 +45,6 @@ export function GroupBoard({
   const [photoBusy, setPhotoBusy] = useState(false)
 
   const active = visible.find((g) => g.id === activeId) || visible[0]
-
-  const groupStudents = useMemo(() => {
-    if (!active) return []
-    return (students || [])
-      .filter((s) => {
-        if (active.sectionId) return s.gradeId === active.gradeId && s.sectionId === active.sectionId
-        return s.gradeId === active.gradeId
-      })
-      .slice(0, 40)
-  }, [students, active])
 
   useEffect(() => {
     if (active && !visible.some((g) => g.id === activeId)) setActiveId(active.id)
@@ -146,17 +133,6 @@ export function GroupBoard({
     } finally {
       setPhotoBusy(false)
     }
-  }
-
-  function studentFromMessage(item) {
-    if (item.authorRole !== 'student') return null
-    return (
-      groupStudents.find((s) => s.id === item.authorId) || {
-        id: item.authorId,
-        name: item.authorName,
-        role: 'student',
-      }
-    )
   }
 
   return (
@@ -251,70 +227,34 @@ export function GroupBoard({
                 </label>
               ) : null}
             </header>
-
-            {onMessageStudent && groupStudents.length ? (
-              <div className="wa-members">
-                <span className="wa-members-label">{t('dmStudents')}</span>
-                <div className="wa-members-row">
-                  {groupStudents.map((student) => (
-                    <div className="wa-member" key={student.id}>
-                      <img
-                        className="wa-member-avatar"
-                        src={displayPhoto(student.photo, student.name, student.id || student.name)}
-                        alt=""
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                      />
-                      <span>{student.name}</span>
-                      <ChatIconButton
-                        className="sm"
-                        label={t('message')}
-                        onClick={() => onMessageStudent(student)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
             <div className="wa-thread">
               {messages.length === 0 ? (
                 <div className="empty">{t('noMessages')}</div>
               ) : (
-                messages.map((item) => {
-                  const peer = onMessageStudent ? studentFromMessage(item) : null
-                  return (
-                    <article key={item.id} className={`wa-bubble ${item.authorId === user.id ? 'mine' : ''}`}>
-                      <div className="wa-meta">
-                        <b>{item.authorName}</b>
-                        <span>{item.authorRole}</span>
-                        {peer ? (
-                          <ChatIconButton
-                            className="sm"
-                            label={t('message')}
-                            onClick={() => onMessageStudent(peer)}
-                          />
-                        ) : null}
-                        {canDelete ? (
-                          <button
-                            type="button"
-                            className="linkish"
-                            onClick={() =>
-                              onDelete(item.id).then(async () =>
-                                setMessages((await loadMessages(active.id)).messages || []),
-                              )
-                            }
-                          >
-                            {t('delete')}
-                          </button>
-                        ) : null}
-                      </div>
-                      {item.body ? <p>{item.body}</p> : null}
-                      {item.fileData ? <Attachment item={item} t={t} /> : null}
-                      <small>{new Date(item.createdAt).toLocaleString(lang === 'ar' ? 'ar' : 'en')}</small>
-                    </article>
-                  )
-                })
+                messages.map((item) => (
+                  <article key={item.id} className={`wa-bubble ${item.authorId === user.id ? 'mine' : ''}`}>
+                    <div className="wa-meta">
+                      <b>{item.authorName}</b>
+                      <span>{item.authorRole}</span>
+                      {canDelete ? (
+                        <button
+                          type="button"
+                          className="linkish"
+                          onClick={() =>
+                            onDelete(item.id).then(async () =>
+                              setMessages((await loadMessages(active.id)).messages || []),
+                            )
+                          }
+                        >
+                          {t('delete')}
+                        </button>
+                      ) : null}
+                    </div>
+                    {item.body ? <p>{item.body}</p> : null}
+                    {item.fileData ? <Attachment item={item} t={t} /> : null}
+                    <small>{new Date(item.createdAt).toLocaleString(lang === 'ar' ? 'ar' : 'en')}</small>
+                  </article>
+                ))
               )}
             </div>
             {canPost ? (
