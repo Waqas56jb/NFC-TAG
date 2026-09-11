@@ -18,7 +18,8 @@
     "db:student-tags": "node scripts/setup-student-tags.mjs",
     "db:aman-seed": "node scripts/seed-aman-public-private.mjs",
     "db:wipe": "node scripts/wipe-nfctag-data.mjs",
-    "db:test-accounts": "node scripts/seed-test-accounts.mjs"
+    "db:test-accounts": "node scripts/seed-test-accounts.mjs",
+    "db:seed-five": "node scripts/seed-five-each.mjs"
   },
   "dependencies": {
     "pg": "^8.23.0"
