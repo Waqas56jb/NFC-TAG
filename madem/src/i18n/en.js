@@ -131,7 +131,7 @@ export const en = {
   editThisStudent: 'Edit this student',
   downloadNfcTag: 'Download NFC tag',
   downloadingNfc: 'Preparing tag…',
-  toastNfcDownloaded: 'Passport-size AMAN tag downloaded. Phone camera can scan the QR to open the child page.',
+  toastNfcDownloaded: 'أمان tag downloaded (no QR). NFC link copied — write it on the chip inside the tag, then tap with phone.',
   errNfcDownload: 'Could not download NFC tag. Try again.',
   crumbsClasses: 'Classes',
   audit: 'Audit',

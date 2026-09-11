@@ -150,7 +150,7 @@ export const ar = {
   noAnnouncements: 'لا توجد إعلانات بعد.',
   downloadNfcTag: 'تنزيل بطاقة NFC',
   downloadingNfc: 'جارٍ تجهيز البطاقة…',
-  toastNfcDownloaded: 'تم تنزيل بطاقة أمان بحجم جواز السفر. امسح رمز QR بكاميرا الهاتف.',
+  toastNfcDownloaded: 'تم تنزيل وسم أمان (بدون QR). اطلب من المديرة برمجة شريحة NFC برابطك.',
   errNfcDownload: 'تعذر تنزيل بطاقة NFC. حاول مرة أخرى.',
   publicChildMissing: 'لم يتم العثور على الطفل',
   errChildMissing: 'رابط بطاقة NFC غير صالح أو تم حذف السجل.',
