@@ -16,7 +16,8 @@
     "db:desk": "node scripts/setup-teacher-desk.mjs",
     "db:student-leaves": "node scripts/setup-student-leaves.mjs",
     "db:student-tags": "node scripts/setup-student-tags.mjs",
-    "db:aman-seed": "node scripts/seed-aman-public-private.mjs"
+    "db:aman-seed": "node scripts/seed-aman-public-private.mjs",
+    "db:wipe": "node scripts/wipe-nfctag-data.mjs"
   },
   "dependencies": {
     "pg": "^8.23.0"
