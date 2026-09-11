@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { ChatIconButton } from './ChatIconButton'
 import { displayPhoto } from '../lib/avatar'
 import { readPhoto } from '../lib/photo'
 import { readShareFile } from '../lib/fileShare'
@@ -13,6 +14,7 @@ function GroupAvatar({ group }) {
 export function GroupBoard({
   groups,
   grades,
+  students = [],
   allowedCards = null,
   user,
   canCreate = false,
@@ -24,6 +26,7 @@ export function GroupBoard({
   onPost,
   onDelete,
   onUpdatePhoto,
+  onMessageStudent,
 }) {
   const { t, lang, tx } = useI18n()
   const cards = allowedCards || listClassCards(grades)
@@ -45,6 +48,16 @@ export function GroupBoard({
   const [photoBusy, setPhotoBusy] = useState(false)
 
   const active = visible.find((g) => g.id === activeId) || visible[0]
+
+  const groupStudents = useMemo(() => {
+    if (!active) return []
+    return (students || [])
+      .filter((s) => {
+        if (active.sectionId) return s.gradeId === active.gradeId && s.sectionId === active.sectionId
+        return s.gradeId === active.gradeId
+      })
+      .slice(0, 40)
+  }, [students, active])
 
   useEffect(() => {
     if (active && !visible.some((g) => g.id === activeId)) setActiveId(active.id)
@@ -135,6 +148,17 @@ export function GroupBoard({
     }
   }
 
+  function studentFromMessage(item) {
+    if (item.authorRole !== 'student') return null
+    return (
+      groupStudents.find((s) => s.id === item.authorId) || {
+        id: item.authorId,
+        name: item.authorName,
+        role: 'student',
+      }
+    )
+  }
+
   return (
     <div className={`wa-shell ${roomOpen ? 'room-open' : ''}`}>
       <aside className="wa-list">
@@ -144,7 +168,7 @@ export function GroupBoard({
             <h2>{t('groupsTitle')}</h2>
           </div>
           {canCreate ? (
-            <button className="primary" onClick={() => setOpen((v) => !v)}>
+            <button type="button" className="primary wa-btn" onClick={() => setOpen((v) => !v)}>
               {t('createGroup')}
             </button>
           ) : null}
@@ -157,7 +181,7 @@ export function GroupBoard({
                 src={displayPhoto(form.photo, t('createGroup'), 'new-group', 'shapes')}
                 alt=""
               />
-              <label className="ghost">
+              <label className="ghost wa-btn">
                 {form.photo ? t('changePhoto') : t('uploadGroupPhoto')}
                 <input type="file" hidden accept="image/*" onChange={(e) => onPickGroupPhoto(e, 'create')} />
               </label>
@@ -178,7 +202,7 @@ export function GroupBoard({
                 </option>
               ))}
             </select>
-            <button className="primary" type="submit">
+            <button className="primary wa-btn" type="submit">
               {t('createGroup')}
             </button>
           </form>
@@ -190,6 +214,7 @@ export function GroupBoard({
             visible.map((group) => (
               <button
                 key={group.id}
+                type="button"
                 className={`wa-chat ${active?.id === group.id ? 'on' : ''}`}
                 onClick={() => {
                   setActiveId(group.id)
@@ -211,7 +236,7 @@ export function GroupBoard({
         {active ? (
           <>
             <header className="wa-room-head">
-              <button type="button" className="ghost wa-back" onClick={() => setRoomOpen(false)}>
+              <button type="button" className="ghost wa-btn wa-back" onClick={() => setRoomOpen(false)}>
                 {t('back')}
               </button>
               <GroupAvatar group={active} />
@@ -220,38 +245,82 @@ export function GroupBoard({
                 <p className="muted">{t('groupHint')}</p>
               </div>
               {canEditPhoto ? (
-                <label className="ghost wa-photo-btn">
+                <label className="ghost wa-btn wa-photo-btn">
                   {photoBusy ? '…' : t('changePhoto')}
                   <input type="file" hidden accept="image/*" disabled={photoBusy} onChange={(e) => onPickGroupPhoto(e, 'edit')} />
                 </label>
               ) : null}
             </header>
+
+            {onMessageStudent && groupStudents.length ? (
+              <div className="wa-members">
+                <span className="wa-members-label">{t('dmStudents')}</span>
+                <div className="wa-members-row">
+                  {groupStudents.map((student) => (
+                    <div className="wa-member" key={student.id}>
+                      <img
+                        className="wa-member-avatar"
+                        src={displayPhoto(student.photo, student.name, student.id || student.name)}
+                        alt=""
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                      />
+                      <span>{student.name}</span>
+                      <ChatIconButton
+                        className="sm"
+                        label={t('message')}
+                        onClick={() => onMessageStudent(student)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             <div className="wa-thread">
               {messages.length === 0 ? (
                 <div className="empty">{t('noMessages')}</div>
               ) : (
-                messages.map((item) => (
-                  <article key={item.id} className={`wa-bubble ${item.authorId === user.id ? 'mine' : ''}`}>
-                    <div className="wa-meta">
-                      <b>{item.authorName}</b>
-                      <span>{item.authorRole}</span>
-                      {canDelete ? (
-                        <button type="button" className="linkish" onClick={() => onDelete(item.id).then(async () => setMessages((await loadMessages(active.id)).messages || []))}>
-                          {t('delete')}
-                        </button>
-                      ) : null}
-                    </div>
-                    {item.body ? <p>{item.body}</p> : null}
-                    {item.fileData ? <Attachment item={item} t={t} /> : null}
-                    <small>{new Date(item.createdAt).toLocaleString(lang === 'ar' ? 'ar' : 'en')}</small>
-                  </article>
-                ))
+                messages.map((item) => {
+                  const peer = onMessageStudent ? studentFromMessage(item) : null
+                  return (
+                    <article key={item.id} className={`wa-bubble ${item.authorId === user.id ? 'mine' : ''}`}>
+                      <div className="wa-meta">
+                        <b>{item.authorName}</b>
+                        <span>{item.authorRole}</span>
+                        {peer ? (
+                          <ChatIconButton
+                            className="sm"
+                            label={t('message')}
+                            onClick={() => onMessageStudent(peer)}
+                          />
+                        ) : null}
+                        {canDelete ? (
+                          <button
+                            type="button"
+                            className="linkish"
+                            onClick={() =>
+                              onDelete(item.id).then(async () =>
+                                setMessages((await loadMessages(active.id)).messages || []),
+                              )
+                            }
+                          >
+                            {t('delete')}
+                          </button>
+                        ) : null}
+                      </div>
+                      {item.body ? <p>{item.body}</p> : null}
+                      {item.fileData ? <Attachment item={item} t={t} /> : null}
+                      <small>{new Date(item.createdAt).toLocaleString(lang === 'ar' ? 'ar' : 'en')}</small>
+                    </article>
+                  )
+                })
               )}
             </div>
             {canPost ? (
               <form className="wa-composer" onSubmit={send}>
                 <input value={text} onChange={(e) => setText(e.target.value)} placeholder={t('writeMessage')} />
-                <label className="ghost attach">
+                <label className="ghost wa-btn attach">
                   {file ? file.fileName : t('attach')}
                   <input
                     type="file"
@@ -270,7 +339,7 @@ export function GroupBoard({
                     }}
                   />
                 </label>
-                <button className="primary" type="submit">
+                <button className="primary wa-btn" type="submit">
                   {t('send')}
                 </button>
                 {error ? <div className="error">{error}</div> : null}

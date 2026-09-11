@@ -313,6 +313,7 @@ export const en = {
   groupsTitle: 'Class groups',
   createGroup: 'Create group',
   message: 'Message',
+  dmStudents: 'Message a student',
   dmWith: 'Chat · {name}',
   dmStaffHint: 'Send text, photos, PDFs, videos or links to this student.',
   loading: 'Loading…',

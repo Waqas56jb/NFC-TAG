@@ -151,6 +151,7 @@ export const en = {
   message: 'Message',
   dmWith: 'Chat · {name}',
   dmStaffHint: 'Send text, photos, PDFs, videos or links to this student.',
+  dmStudents: 'Message a student',
   loading: 'Loading…',
   writeMessage: 'Write a message',
   attach: 'Attach',

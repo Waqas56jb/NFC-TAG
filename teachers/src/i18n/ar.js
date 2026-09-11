@@ -151,6 +151,7 @@ export const ar = {
   message: 'رسالة',
   dmWith: 'محادثة · {name}',
   dmStaffHint: 'أرسل نصاً أو صوراً أو ملفات أو روابط لهذا الطالب.',
+  dmStudents: 'راسل طالباً',
   loading: 'جارٍ التحميل…',
   writeMessage: 'اكتب رسالة',
   attach: 'إرفاق',

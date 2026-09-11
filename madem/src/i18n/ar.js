@@ -313,6 +313,7 @@ export const ar = {
   groupsTitle: 'مجموعات الفصل',
   createGroup: 'إنشاء مجموعة',
   message: 'رسالة',
+  dmStudents: 'راسل طالباً',
   dmWith: 'محادثة · {name}',
   dmStaffHint: 'أرسل نصاً أو صوراً أو ملفات أو روابط لهذا الطالب.',
   loading: 'جارٍ التحميل…',

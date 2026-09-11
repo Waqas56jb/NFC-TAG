@@ -1698,6 +1698,96 @@ td.hot {
   display: none;
 }
 
+.wa-shell .wa-btn,
+.wa-shell .primary.wa-btn,
+.wa-shell .ghost.wa-btn,
+.wa-shell label.wa-btn {
+  border-radius: 10px !important;
+  min-height: 34px !important;
+  height: auto !important;
+  padding: 6px 12px !important;
+  font-size: 0.82rem !important;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  width: auto !important;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.wa-list-head {
+  align-items: center;
+}
+.wa-list-head .wa-btn {
+  flex-shrink: 0;
+  max-width: 9.5rem;
+}
+.wa-photo-btn {
+  max-width: 8.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wa-members {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eadfca;
+  background: #faf7f1;
+}
+.wa-members-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.wa-members-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+.wa-member {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 6px 8px 6px 6px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #eadfca;
+  max-width: 220px;
+}
+.wa-member span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+}
+.wa-member-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #efe6d4;
+}
+.icon-chat.sm {
+  width: 28px !important;
+  height: 28px !important;
+}
+.icon-chat.sm svg {
+  width: 14px;
+  height: 14px;
+}
+.wa-meta .icon-chat {
+  margin-inline-start: 2px;
+}
+
 .icon-chat {
   width: 40px;
   height: 40px;
