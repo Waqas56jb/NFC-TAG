@@ -157,7 +157,7 @@ export const en = {
   noAnnouncements: 'No announcements yet.',
   downloadNfcTag: 'Download NFC tag',
   downloadingNfc: 'Preparing tag…',
-  toastNfcDownloaded: 'Your tag downloaded. Small QR opens your unique profile in the browser when scanned.',
+  toastNfcDownloaded: 'QR downloaded. Scan it to open your profile in the browser.',
   errNfcDownload: 'Could not download NFC tag. Try again.',
   publicChildMissing: 'Child not found',
   errChildMissing: 'This NFC tag link is invalid or the record was removed.',

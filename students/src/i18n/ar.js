@@ -150,7 +150,7 @@ export const ar = {
   noAnnouncements: 'لا توجد إعلانات بعد.',
   downloadNfcTag: 'تنزيل بطاقة NFC',
   downloadingNfc: 'جارٍ تجهيز البطاقة…',
-  toastNfcDownloaded: 'تم تنزيل وسمك. رمز QR الصغير يفتح ملفك الفريد في المتصفح عند المسح.',
+  toastNfcDownloaded: 'تم تنزيل QR. امسحه لفتح ملفك في المتصفح.',
   errNfcDownload: 'تعذر تنزيل بطاقة NFC. حاول مرة أخرى.',
   publicChildMissing: 'لم يتم العثور على الطفل',
   errChildMissing: 'رابط بطاقة NFC غير صالح أو تم حذف السجل.',
