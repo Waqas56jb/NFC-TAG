@@ -74,6 +74,13 @@ export function StudentForm({ form, setForm, error, setError }) {
             ))}
           </select>
         </Field>
+        <Field label={t('allergies')}>
+          <input
+            value={form.allergies}
+            onChange={(e) => setForm({ ...form, allergies: e.target.value })}
+            placeholder={t('allergiesHint')}
+          />
+        </Field>
         <Field label={t('parentName')}>
           <input value={form.parentName} onChange={(e) => setForm({ ...form, parentName: e.target.value })} />
         </Field>
@@ -110,6 +117,7 @@ export function StudentView({ student }) {
     [t('studentLogin'), student.loginEmail],
     [t('studentPassword'), student.loginPassword],
     [t('bloodGroup'), student.bloodGroup],
+    [t('allergies'), student.allergies],
     [t('parentGuardian'), student.parentName],
     [t('parentPhone'), student.parentPhone],
     [t('parentEmail'), student.parentEmail],

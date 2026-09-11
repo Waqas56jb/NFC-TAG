@@ -2598,9 +2598,77 @@ html[dir="rtl"] .pf-link {
 }
 
 .public-safety h2 {
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   font-size: 1rem;
   font-family: Fraunces, Georgia, serif;
+}
+
+.public-safety-lead {
+  margin: 0 0 14px !important;
+  font-size: 0.82rem !important;
+  color: #6b756f !important;
+}
+
+.public-safety-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.public-safety-list li {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f6f1e8;
+}
+
+.public-safety-list span {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #7a857e;
+}
+
+.public-safety-list strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #14241c;
+  word-break: break-word;
+}
+
+.public-safety-list a {
+  color: #1d4e89;
+  text-decoration: none;
+}
+
+.public-call-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.public-call.emergency {
+  background: #fdecea;
+  color: #b42318;
+}
+
+.public-private-hint {
+  margin: 18px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #5d6b63;
+}
+
+.demo-parent-note {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #6b756f;
 }
 
 .public-safety p {

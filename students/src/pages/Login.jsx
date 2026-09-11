@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { useMemo, useState } from 'react'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { useStudent } from '../context/StudentContext'
 import { LanguageToggle } from '../i18n/LanguageToggle'
 import { useI18n } from '../i18n/I18nContext'
@@ -16,9 +16,16 @@ function Field({ label, children }) {
 export function Login() {
   const { student, login, bootError, boot, ready } = useStudent()
   const { t, tx } = useI18n()
+  const [params] = useSearchParams()
+  const asParent = params.get('role') === 'parent'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+
+  const title = useMemo(() => (asParent ? t('parentLoginTitle') : t('loginTitle')), [asParent, t])
+  const lead = useMemo(() => (asParent ? t('parentLoginLead') : t('loginLead')), [asParent, t])
+  const signIn = useMemo(() => (asParent ? t('parentSignIn') : t('signIn')), [asParent, t])
+  const hint = useMemo(() => (asParent ? t('parentLoginHint') : t('loginHint')), [asParent, t])
 
   if (student) return <Navigate to="/profile" replace />
 
@@ -39,12 +46,12 @@ export function Login() {
             <LanguageToggle compact />
           </div>
           <p className="app-kicker">{t('loginFoot')}</p>
-          <h2>{t('loginTitle')}</h2>
-          <p>{t('loginLead')}</p>
+          <h2>{title}</h2>
+          <p>{lead}</p>
         </section>
         <form className="login-sheet" onSubmit={onSubmit}>
-          <h3>{t('signIn')}</h3>
-          <p className="muted login-hint">{t('loginHint')}</p>
+          <h3>{signIn}</h3>
+          <p className="muted login-hint">{hint}</p>
           <Field label={t('email')}>
             <input
               type="email"
@@ -75,12 +82,13 @@ export function Login() {
             </div>
           ) : null}
           <button className="primary app-cta" type="submit">
-            {t('enterDesk')}
+            {asParent ? t('enterParentPortal') : t('enterDesk')}
           </button>
           <div className="demo-box">
             <strong>{t('demoLogin')}</strong>
             <div>{t('demoS1')}</div>
             <div>{t('demoS2')}</div>
+            <p className="demo-parent-note">{t('demoParentNote')}</p>
           </div>
         </form>
       </div>

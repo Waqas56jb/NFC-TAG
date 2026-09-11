@@ -57,7 +57,7 @@ export function Profile() {
     setTagBusy(true)
     setTagMsg('')
     try {
-      await downloadNfcTag(student)
+      await downloadNfcTag(student, { schoolName: t('school') })
       setTagMsg(t('toastNfcDownloaded'))
     } catch (err) {
       setTagMsg(err.message || t('errNfcDownload'))
@@ -109,6 +109,7 @@ export function Profile() {
         <Row label={t('dob')} value={dob} />
         <Row label={t('nic')} value={student.nic} />
         <Row label={t('bloodGroup')} value={student.bloodGroup} />
+        <Row label={t('allergies')} value={student.allergies} />
       </Section>
 
       <Section title={t('profileFamily')} icon="family">

@@ -25,6 +25,7 @@ function mapStudent(row) {
     nic: row.nic || '',
     rollNo: row.roll_no || '',
     bloodGroup: row.blood_group || '',
+    allergies: row.allergies || '',
     address: row.address || '',
     parentName: row.parent_name || '',
     parentPhone: row.parent_phone || '',
@@ -91,7 +92,7 @@ export function createHub(rest) {
       // Prefer tag_code when column exists; fall back to id (UUID).
       let res = await rest.get(
         'nfctag_students',
-        `?select=id,name,photo,parent_name,parent_phone,emergency_phone,blood_group,notes,grade_id,section_id,tag_code&or=(tag_code.eq.${encodeURIComponent(key)},id.eq.${encodeURIComponent(key)})&limit=1`,
+        `?select=id,name,photo,parent_name,parent_phone,parent_email,emergency_phone,blood_group,allergies,notes,grade_id,section_id,tag_code&or=(tag_code.eq.${encodeURIComponent(key)},id.eq.${encodeURIComponent(key)})&limit=1`,
       )
       if (res.error) {
         res = await rest.get('nfctag_students', `?select=*&id=eq.${encodeURIComponent(key)}&limit=1`)

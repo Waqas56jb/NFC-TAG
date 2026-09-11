@@ -64,6 +64,7 @@ function mapStudent(row) {
     nic: row.nic || '',
     rollNo: row.roll_no || '',
     bloodGroup: row.blood_group || '',
+    allergies: row.allergies || '',
     address: row.address || '',
     parentName: row.parent_name || '',
     parentPhone: row.parent_phone || '',

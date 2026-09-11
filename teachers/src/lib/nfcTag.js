@@ -1,4 +1,4 @@
-/** Unique public child URL + printable AMAN shirt NFC tag (no QR). */
+/** Passport-size AMAN tag: correct Arabic brand + camera-scannable QR (unique child URL). */
 
 export function studentTagCode(student) {
   return String(student?.tagCode || student?.id || '').replace(/[^a-zA-Z0-9_-]/g, '')
@@ -31,6 +31,11 @@ function safeFileName(name) {
     .slice(0, 48) || 'student'
 }
 
+function truncate(text, max) {
+  const s = String(text || '')
+  return s.length > max ? `${s.slice(0, max - 1)}…` : s
+}
+
 function roundRect(ctx, x, y, w, h, r) {
   const radius = Math.min(r, w / 2, h / 2)
   ctx.beginPath()
@@ -42,73 +47,110 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath()
 }
 
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('Could not load QR image. Check internet and try again.'))
+    img.src = src
+  })
+}
+
 /**
- * Downloads the small white Arabic أمان shirt tag PNG.
- * Visual design is identical for every student; unique NFC URL is returned
- * so staff can write it onto the physical NFC chip (hidden inside the tag).
+ * Passport-size printable tag (35×45 mm ratio @ 600dpi ≈ 827×1063).
+ * - Correct connected Arabic أمان (not broken letters)
+ * - Large QR so phone camera opens this child's public page
+ * - Same design for every student; QR payload is unique
  */
-export async function downloadNfcTag(student) {
+export async function downloadNfcTag(student, { schoolName = 'NFC Tag school' } = {}) {
   const url = studentPublicUrl(student)
   if (!url) throw new Error('Student tag code missing.')
 
-  // Physical tag proportions: narrow vertical fabric strip
-  const W = 280
-  const H = 720
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=480x480&margin=8&ecc=M&data=${encodeURIComponent(url)}`
+  const qr = await loadImage(qrSrc)
+
+  // Passport photo proportions 35:45
+  const W = 827
+  const H = 1063
   const canvas = document.createElement('canvas')
   canvas.width = W
   canvas.height = H
   const ctx = canvas.getContext('2d')
 
-  // Soft studio backdrop (print crop marks area)
-  ctx.fillStyle = '#ece8e1'
-  ctx.fillRect(0, 0, W, H)
-
-  // White fabric tag
-  const tagX = 48
-  const tagY = 40
-  const tagW = W - 96
-  const tagH = H - 80
-  roundRect(ctx, tagX, tagY, tagW, tagH, 22)
+  // Clean white passport card
   ctx.fillStyle = '#ffffff'
-  ctx.fill()
-  ctx.strokeStyle = '#d8d2c8'
-  ctx.lineWidth = 2
-  ctx.stroke()
+  ctx.fillRect(0, 0, W, H)
+  ctx.strokeStyle = '#d0d0d0'
+  ctx.lineWidth = 4
+  ctx.strokeRect(2, 2, W - 4, H - 4)
 
-  // Subtle weave / fabric feel
-  ctx.save()
-  ctx.globalAlpha = 0.035
-  for (let y = tagY + 8; y < tagY + tagH - 8; y += 4) {
-    ctx.fillStyle = y % 8 === 0 ? '#000' : '#666'
-    ctx.fillRect(tagX + 6, y, tagW - 12, 1)
-  }
-  ctx.restore()
+  // Navy header band
+  ctx.fillStyle = '#0b2a4a'
+  ctx.fillRect(0, 0, W, 210)
 
-  // Vertical أمان (letter stack, top → bottom) — matches shirt tag mockup
-  const letters = ['أ', 'م', 'ا', 'ن']
-  const startY = tagY + 110
-  const step = 120
-  ctx.fillStyle = '#111111'
+  // Correct Arabic word as one connected string (RTL)
+  ctx.fillStyle = '#ffffff'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.font = '700 92px "Segoe UI", Tahoma, "Noto Naskh Arabic", "Arial", sans-serif'
+  ctx.direction = 'rtl'
+  ctx.font = '700 72px "Segoe UI", Tahoma, "Noto Naskh Arabic", "Arial", sans-serif'
+  ctx.fillText('أمان', W / 2, 78)
 
-  letters.forEach((letter, i) => {
-    ctx.fillText(letter, W / 2, startY + i * step)
-  })
+  ctx.direction = 'ltr'
+  ctx.font = '800 34px Manrope, Arial, sans-serif'
+  ctx.fillText('AMAN', W / 2, 140)
 
-  // Tiny hidden programming aid on the reverse-print margin (not on the visible face)
-  // Kept nearly invisible so the tag face stays clean for the shirt.
-  ctx.fillStyle = 'rgba(0,0,0,0.04)'
-  ctx.font = '500 9px ui-monospace, Consolas, monospace'
-  ctx.textAlign = 'center'
-  ctx.fillText(studentTagCode(student).slice(0, 10).toUpperCase(), W / 2, tagY + tagH - 18)
+  ctx.font = '600 20px Manrope, Arial, sans-serif'
+  ctx.fillStyle = 'rgba(255,255,255,0.88)'
+  ctx.fillText('One Tag · Two Functions', W / 2, 178)
+
+  // Child name
+  ctx.fillStyle = '#14241c'
+  ctx.font = '700 36px Fraunces, Georgia, "Times New Roman", serif'
+  ctx.fillText(truncate(student.name || 'Student', 26), W / 2, 265)
+
+  ctx.fillStyle = '#5d6b63'
+  ctx.font = '600 20px Manrope, Arial, sans-serif'
+  ctx.fillText(truncate(schoolName, 34), W / 2, 305)
+
+  // Camera-scannable QR (unique URL hidden in the code)
+  const qrSize = 420
+  const qrX = (W - qrSize) / 2
+  const qrY = 340
+  roundRect(ctx, qrX - 18, qrY - 18, qrSize + 36, qrSize + 36, 20)
+  ctx.fillStyle = '#f7f7f7'
+  ctx.fill()
+  ctx.drawImage(qr, qrX, qrY, qrSize, qrSize)
+
+  // Scan hint
+  ctx.fillStyle = '#0b2a4a'
+  ctx.font = '700 24px Manrope, Arial, sans-serif'
+  ctx.fillText('Scan with phone camera', W / 2, 820)
+
+  ctx.fillStyle = '#5d6b63'
+  ctx.font = '500 18px Manrope, Arial, sans-serif'
+  ctx.fillText('Opens this child’s safety page', W / 2, 855)
+
+  // Tiny ID (same visual family; uniqueness is in QR)
+  ctx.fillStyle = '#9aa39c'
+  ctx.font = '600 16px ui-monospace, Consolas, monospace'
+  ctx.fillText(`ID ${studentTagCode(student).slice(0, 10).toUpperCase()}`, W / 2, 900)
+
+  ctx.fillStyle = '#b42318'
+  ctx.font = '600 18px Manrope, Arial, sans-serif'
+  ctx.fillText('Together for a Safer Tomorrow', W / 2, 960)
+
+  // Passport size label for print shops
+  ctx.fillStyle = '#b0b0b0'
+  ctx.font = '500 14px Manrope, Arial, sans-serif'
+  ctx.fillText('Passport size 35×45 mm', W / 2, 1025)
 
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
   if (!blob) throw new Error('Could not create tag image.')
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = `AMAN-tag-${safeFileName(student.name)}.png`
+  a.download = `AMAN-passport-${safeFileName(student.name)}.png`
   document.body.appendChild(a)
   a.click()
   a.remove()

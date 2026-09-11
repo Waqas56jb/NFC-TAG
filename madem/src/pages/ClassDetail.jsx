@@ -83,14 +83,13 @@ export function ClassDetail() {
     if (!student?.id) return
     setTagBusyId(student.id)
     try {
-      const result = await downloadNfcTag(student)
+      await downloadNfcTag(student, { schoolName: t('school') })
       try {
         await copyStudentTagUrl(student)
       } catch {
         /* clipboard optional */
       }
       notify?.(t('toastNfcDownloaded'))
-      return result
     } catch (err) {
       notify?.(err.message || t('errNfcDownload'), 'bad')
     } finally {
