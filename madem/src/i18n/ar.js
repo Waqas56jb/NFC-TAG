@@ -131,7 +131,7 @@ export const ar = {
   editThisStudent: 'تعديل هذا الطالب',
   downloadNfcTag: 'تنزيل بطاقة NFC',
   downloadingNfc: 'جارٍ تجهيز البطاقة…',
-  toastNfcDownloaded: 'تم تنزيل بطاقة NFC. اطبعها وأعطها للطالب.',
+  toastNfcDownloaded: 'تم تنزيل وسم أمان العربي. تم نسخ رابط NFC — اكتبه على الشريحة داخل الوسم.',
   errNfcDownload: 'تعذر تنزيل بطاقة NFC. حاول مرة أخرى.',
   crumbsClasses: 'الفصول',
   audit: 'التدقيق',

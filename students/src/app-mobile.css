@@ -2499,6 +2499,15 @@ html[dir="rtl"] .pf-link {
   color: #0b2a4a;
 }
 
+.public-kicker {
+  margin: 0 0 14px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b756f;
+}
+
 .public-photo {
   width: 112px;
   height: 112px;
@@ -2523,27 +2532,63 @@ html[dir="rtl"] .pf-link {
 }
 
 .public-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   width: 100%;
   box-sizing: border-box;
   margin: 0 0 10px;
   padding: 14px 16px;
+  border: 0;
   border-radius: 14px;
   font-weight: 800;
+  font-size: 0.95rem;
   text-decoration: none;
   text-align: center;
+  cursor: pointer;
 }
 
 .public-btn.safety {
-  background: #0b2a4a;
+  background: #2f6f4e;
   color: #fff;
 }
 
 .public-btn.login {
-  background: #f0e6d4;
-  color: #14241c;
-  border: 1px solid #d9cbb0;
+  background: #1d4e89;
+  color: #fff;
 }
+
+.public-btn-ico {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.public-btn-ico.shield::before {
+  content: "";
+  position: absolute;
+  inset: 5px 7px 4px;
+  border: 2px solid #fff;
+  border-radius: 40% 40% 45% 45%;
+}
+
+.public-btn-ico.users::before,
+.public-btn-ico.users::after {
+  content: "";
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  top: 5px;
+}
+
+.public-btn-ico.users::before { left: 4px; }
+.public-btn-ico.users::after { right: 4px; }
 
 .public-safety {
   margin-top: 22px;
@@ -2580,5 +2625,9 @@ html[dir="rtl"] .pf-link {
   margin: 22px 0 0;
   font-size: 0.75rem;
   color: #8a938c;
+}
+
+.public-heart {
+  color: #b42318;
 }
 

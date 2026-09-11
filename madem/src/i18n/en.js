@@ -131,7 +131,7 @@ export const en = {
   editThisStudent: 'Edit this student',
   downloadNfcTag: 'Download NFC tag',
   downloadingNfc: 'Preparing tag…',
-  toastNfcDownloaded: 'NFC tag downloaded. Print and give to the student.',
+  toastNfcDownloaded: 'Arabic أمان tag downloaded. NFC link copied — write that URL onto the chip inside the tag.',
   errNfcDownload: 'Could not download NFC tag. Try again.',
   crumbsClasses: 'Classes',
   audit: 'Audit',

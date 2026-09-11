@@ -1,4 +1,4 @@
-/** Unique public child URL + printable AMAN NFC/QR tag card */
+/** Unique public child URL + printable AMAN shirt NFC tag (no QR). */
 
 export function studentTagCode(student) {
   return String(student?.tagCode || student?.id || '').replace(/[^a-zA-Z0-9_-]/g, '')
@@ -8,7 +8,6 @@ export function publicTagBase() {
   const fromEnv = (import.meta.env.VITE_PUBLIC_TAG_BASE || '').replace(/\/$/, '')
   if (fromEnv) return fromEnv
   if (typeof window !== 'undefined' && window.location?.origin) {
-    // Madam/Teacher panels point tags at the students (public) app when possible.
     const host = window.location.hostname || ''
     if (host.includes('nfc-madem') || host.includes('nfc-teacher')) {
       return 'https://nfc-students.vercel.app'
@@ -24,16 +23,6 @@ export function studentPublicUrl(student) {
   return `${publicTagBase()}/c/${code}`
 }
 
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error('Could not load QR image.'))
-    img.src = src
-  })
-}
-
 function safeFileName(name) {
   return String(name || 'student')
     .trim()
@@ -42,95 +31,84 @@ function safeFileName(name) {
     .slice(0, 48) || 'student'
 }
 
+function roundRect(ctx, x, y, w, h, r) {
+  const radius = Math.min(r, w / 2, h / 2)
+  ctx.beginPath()
+  ctx.moveTo(x + radius, y)
+  ctx.arcTo(x + w, y, x + w, y + h, radius)
+  ctx.arcTo(x + w, y + h, x, y + h, radius)
+  ctx.arcTo(x + w, y + h, x, y, radius)
+  ctx.arcTo(x, y, x + w, y, radius)
+  ctx.closePath()
+}
+
 /**
- * Downloads a printable AMAN NFC tag PNG.
- * Same visual design for every student; unique QR/URL is embedded (hidden identity).
+ * Downloads the small white Arabic أمان shirt tag PNG.
+ * Visual design is identical for every student; unique NFC URL is returned
+ * so staff can write it onto the physical NFC chip (hidden inside the tag).
  */
-export async function downloadNfcTag(student, { schoolName = 'NFC Tag school' } = {}) {
+export async function downloadNfcTag(student) {
   const url = studentPublicUrl(student)
   if (!url) throw new Error('Student tag code missing.')
 
-  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=10&data=${encodeURIComponent(url)}`
-  const qr = await loadImage(qrSrc)
-
-  const W = 720
-  const H = 1040
+  // Physical tag proportions: narrow vertical fabric strip
+  const W = 280
+  const H = 720
   const canvas = document.createElement('canvas')
   canvas.width = W
   canvas.height = H
   const ctx = canvas.getContext('2d')
 
-  // Background
-  ctx.fillStyle = '#f4efe6'
+  // Soft studio backdrop (print crop marks area)
+  ctx.fillStyle = '#ece8e1'
   ctx.fillRect(0, 0, W, H)
 
-  // Outer card
-  roundRect(ctx, 36, 36, W - 72, H - 72, 36)
+  // White fabric tag
+  const tagX = 48
+  const tagY = 40
+  const tagW = W - 96
+  const tagH = H - 80
+  roundRect(ctx, tagX, tagY, tagW, tagH, 22)
   ctx.fillStyle = '#ffffff'
   ctx.fill()
-  ctx.strokeStyle = '#d9cbb0'
-  ctx.lineWidth = 3
+  ctx.strokeStyle = '#d8d2c8'
+  ctx.lineWidth = 2
   ctx.stroke()
 
-  // Header band
-  const grad = ctx.createLinearGradient(0, 60, 0, 260)
-  grad.addColorStop(0, '#0b2a4a')
-  grad.addColorStop(1, '#163a5f')
-  roundRect(ctx, 60, 60, W - 120, 210, 28)
-  ctx.fillStyle = grad
-  ctx.fill()
+  // Subtle weave / fabric feel
+  ctx.save()
+  ctx.globalAlpha = 0.035
+  for (let y = tagY + 8; y < tagY + tagH - 8; y += 4) {
+    ctx.fillStyle = y % 8 === 0 ? '#000' : '#666'
+    ctx.fillRect(tagX + 6, y, tagW - 12, 1)
+  }
+  ctx.restore()
 
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '700 42px Georgia, "Times New Roman", serif'
+  // Vertical أمان (letter stack, top → bottom) — matches shirt tag mockup
+  const letters = ['أ', 'م', 'ا', 'ن']
+  const startY = tagY + 110
+  const step = 120
+  ctx.fillStyle = '#111111'
   ctx.textAlign = 'center'
-  ctx.fillText('أمان', W / 2, 130)
-  ctx.font = '800 28px Manrope, Arial, sans-serif'
-  ctx.fillText('AMAN', W / 2, 175)
-  ctx.font = '600 18px Manrope, Arial, sans-serif'
-  ctx.fillStyle = 'rgba(255,255,255,0.85)'
-  ctx.fillText('One Tag · Two Functions', W / 2, 215)
+  ctx.textBaseline = 'middle'
+  ctx.font = '700 92px "Segoe UI", Tahoma, "Noto Naskh Arabic", "Arial", sans-serif'
 
-  // Child name
-  ctx.fillStyle = '#14241c'
-  ctx.font = '700 34px Fraunces, Georgia, serif'
-  ctx.fillText(truncate(student.name || 'Student', 28), W / 2, 330)
+  letters.forEach((letter, i) => {
+    ctx.fillText(letter, W / 2, startY + i * step)
+  })
 
-  ctx.fillStyle = '#5d6b63'
-  ctx.font = '600 18px Manrope, Arial, sans-serif'
-  ctx.fillText(truncate(schoolName, 36), W / 2, 365)
-
-  // QR
-  const qrSize = 340
-  const qrX = (W - qrSize) / 2
-  const qrY = 400
-  roundRect(ctx, qrX - 16, qrY - 16, qrSize + 32, qrSize + 32, 24)
-  ctx.fillStyle = '#faf7f1'
-  ctx.fill()
-  ctx.drawImage(qr, qrX, qrY, qrSize, qrSize)
-
-  // Footer instructions
-  ctx.fillStyle = '#0b2a4a'
-  ctx.font = '700 20px Manrope, Arial, sans-serif'
-  ctx.fillText('Tap with your phone · Scan QR', W / 2, 800)
-
-  ctx.fillStyle = '#5d6b63'
-  ctx.font = '500 16px Manrope, Arial, sans-serif'
-  ctx.fillText('Opens this child’s safety page', W / 2, 835)
-
-  // Tiny unique code (not the full URL — design looks same)
-  ctx.font = '600 14px ui-monospace, Consolas, monospace'
-  ctx.fillStyle = '#9aa39c'
-  ctx.fillText(`ID ${studentTagCode(student).slice(0, 8).toUpperCase()}`, W / 2, 880)
-
-  ctx.fillStyle = '#b42318'
-  ctx.font = '600 16px Manrope, Arial, sans-serif'
-  ctx.fillText('Together for a Safer Tomorrow', W / 2, 940)
+  // Tiny hidden programming aid on the reverse-print margin (not on the visible face)
+  // Kept nearly invisible so the tag face stays clean for the shirt.
+  ctx.fillStyle = 'rgba(0,0,0,0.04)'
+  ctx.font = '500 9px ui-monospace, Consolas, monospace'
+  ctx.textAlign = 'center'
+  ctx.fillText(studentTagCode(student).slice(0, 10).toUpperCase(), W / 2, tagY + tagH - 18)
 
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
   if (!blob) throw new Error('Could not create tag image.')
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = `AMAN-NFC-${safeFileName(student.name)}.png`
+  a.download = `AMAN-tag-${safeFileName(student.name)}.png`
   document.body.appendChild(a)
   a.click()
   a.remove()
@@ -138,18 +116,18 @@ export async function downloadNfcTag(student, { schoolName = 'NFC Tag school' } 
   return { ok: true, url }
 }
 
-function truncate(text, max) {
-  const s = String(text || '')
-  return s.length > max ? `${s.slice(0, max - 1)}…` : s
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-  const radius = Math.min(r, w / 2, h / 2)
-  ctx.beginPath()
-  ctx.moveTo(x + radius, y)
-  ctx.arcTo(x + w, y, x + w, y + h, radius)
-  ctx.arcTo(x + w, y + h, x, y + h, radius)
-  ctx.arcTo(x, y + h, x, y, radius)
-  ctx.arcTo(x, y, x + w, y, radius)
-  ctx.closePath()
+export async function copyStudentTagUrl(student) {
+  const url = studentPublicUrl(student)
+  if (!url) throw new Error('Student tag code missing.')
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(url)
+  } else {
+    const input = document.createElement('input')
+    input.value = url
+    document.body.appendChild(input)
+    input.select()
+    document.execCommand('copy')
+    input.remove()
+  }
+  return { ok: true, url }
 }

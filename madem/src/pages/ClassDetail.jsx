@@ -8,7 +8,7 @@ import { StaffDmModal } from '../components/StaffDmModal'
 import { StudentForm, StudentView } from '../components/StudentForm'
 import { useApp } from '../context/AppContext'
 import { useI18n } from '../i18n/I18nContext'
-import { downloadNfcTag } from '../lib/nfcTag'
+import { downloadNfcTag, copyStudentTagUrl } from '../lib/nfcTag'
 import { resolveClassRoute } from '../lib/school'
 import { emptyStudent, studentFromRecord } from '../lib/studentFields'
 
@@ -83,8 +83,14 @@ export function ClassDetail() {
     if (!student?.id) return
     setTagBusyId(student.id)
     try {
-      await downloadNfcTag(student, { schoolName: t('school') })
+      const result = await downloadNfcTag(student)
+      try {
+        await copyStudentTagUrl(student)
+      } catch {
+        /* clipboard optional */
+      }
       notify?.(t('toastNfcDownloaded'))
+      return result
     } catch (err) {
       notify?.(err.message || t('errNfcDownload'), 'bad')
     } finally {
