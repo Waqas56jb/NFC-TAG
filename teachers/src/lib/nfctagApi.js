@@ -192,7 +192,7 @@ export function createNftagApi(supabase) {
   }
 
   async function addActivity(user, action, targetType, targetName, detail) {
-    if (!user) return
+    if (!user || !supabase) return
     await supabase.from('nfctag_activities').insert({
       actor_id: user.id,
       actor_name: user.name,
@@ -214,7 +214,7 @@ export function createNftagApi(supabase) {
     return checks.some((res) => res.data && res.data.id !== ignoreId)
   }
 
-  return {
+  const api = {
     fetchSchool,
     addActivity,
     emailTaken,
@@ -468,4 +468,21 @@ export function createNftagApi(supabase) {
       return { ok: true, created }
     },
   }
+
+  if (!supabase) {
+    const missingEnv = {
+      message: 'Missing Supabase URL or key. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel.',
+    }
+    const safe = ['fetchSchool', 'loginStaff', 'loginTeacher', 'fail', 'studentRow']
+    return new Proxy(api, {
+      get(target, prop) {
+        const value = target[prop]
+        if (typeof value !== 'function') return value
+        if (safe.includes(prop)) return typeof value === 'function' ? value.bind(target) : value
+        return async () => fail(missingEnv)
+      },
+    })
+  }
+
+  return api
 }

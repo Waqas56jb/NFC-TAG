@@ -48,24 +48,29 @@ export function StudentProvider({ children }) {
   }
 
   async function refresh(nextStudent = student) {
-    const school = await hub.fetchSchool()
-    setGrades(school.grades || [])
-    const jobs = [hub.listGroups(), hub.listAnnouncements()]
-    if (nextStudent?.id) {
-      jobs.push(hub.fetchStudent(nextStudent.id))
-      jobs.push(hub.listMyAttendance(nextStudent.gradeId, nextStudent.sectionId, nextStudent.id))
+    try {
+      const school = await hub.fetchSchool()
+      setGrades(school.grades || [])
+      const jobs = [hub.listGroups(), hub.listAnnouncements()]
+      if (nextStudent?.id) {
+        jobs.push(hub.fetchStudent(nextStudent.id))
+        jobs.push(hub.listMyAttendance(nextStudent.gradeId, nextStudent.sectionId, nextStudent.id))
+      }
+      const [g, a, profile, mine] = await Promise.all(jobs)
+      if (g?.ok) setGroups(g.groups)
+      if (a?.ok) setAnnouncements(a.announcements)
+      if (profile?.ok) {
+        setStudent(profile.student)
+        saveSession(profile.student)
+      }
+      if (mine?.ok) setAttendance(mine.records)
+      else if (!nextStudent?.id) setAttendance([])
+      setBootError('')
+      return school
+    } catch (err) {
+      setBootError(err.message || t('errBoot'))
+      return { grades: [] }
     }
-    const [g, a, profile, mine] = await Promise.all(jobs)
-    if (g.ok) setGroups(g.groups)
-    if (a.ok) setAnnouncements(a.announcements)
-    if (profile?.ok) {
-      setStudent(profile.student)
-      saveSession(profile.student)
-    }
-    if (mine?.ok) setAttendance(mine.records)
-    else if (!nextStudent?.id) setAttendance([])
-    setBootError('')
-    return school
   }
 
   async function boot() {

@@ -7,4 +7,13 @@ export default defineConfig({
     port: 5177,
     strictPort: true,
   },
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    sourcemap: false,
+    chunkSizeWarningLimit: 900,
+  },
+  preview: {
+    port: 4177,
+  },
 })

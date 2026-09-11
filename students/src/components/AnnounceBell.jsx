@@ -36,6 +36,7 @@ function initial(name) {
 }
 
 function portalRoot() {
+  if (typeof document === 'undefined') return null
   return document.querySelector('.phone-app') || document.body
 }
 
@@ -51,12 +52,12 @@ export function AnnounceBell({
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [freshCount, setFreshCount] = useState(0)
-  const [mountNode, setMountNode] = useState(null)
+  const [mountNode, setMountNode] = useState(() => portalRoot())
   const unread = user ? unreadCount(announcements, user.role, user.id) : 0
 
   useEffect(() => {
     setMountNode(portalRoot())
-  }, [])
+  }, [open])
 
   function toggle() {
     const next = !open

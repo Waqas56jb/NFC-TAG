@@ -2018,3 +2018,52 @@ html[dir="rtl"] .pf-link {
   .pf-row strong,
   .pf-link { text-align: start; }
 }
+
+/* Crash / ErrorBoundary fallback */
+.crash-screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(196, 122, 58, 0.16), transparent 40%),
+    #0a1410;
+  color: #f4efe6;
+}
+
+.crash-card {
+  width: min(100%, 380px);
+  padding: 28px 22px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #faf7f1, #f4efe6);
+  color: #14241c;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+.crash-kicker {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9a5c28;
+}
+
+.crash-card h1 {
+  margin: 10px 0 8px;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 1.45rem;
+}
+
+.crash-card p {
+  margin: 0 0 18px;
+  color: #5d6b63;
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.crash-card .primary {
+  width: 100%;
+  min-height: 48px;
+}

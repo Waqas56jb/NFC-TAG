@@ -1803,3 +1803,44 @@ td.hot {
   background: #e7efe8;
   box-shadow: inset 0 0 0 1px var(--ink);
 }
+  .wa-shell { grid-template-columns: 1fr; min-height: auto; }
+  .page { padding: 18px 14px 32px; }
+}
+
+.crash-screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #0a1410;
+  color: #f4efe6;
+}
+.crash-card {
+  width: min(100%, 380px);
+  padding: 28px 22px;
+  border-radius: 22px;
+  background: #faf7f1;
+  color: #14241c;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0,0,0,.35);
+}
+.crash-kicker {
+  margin: 0;
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #9a5c28;
+}
+.crash-card h1 {
+  margin: 10px 0 8px;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 1.45rem;
+}
+.crash-card p {
+  margin: 0 0 18px;
+  color: #5d6b63;
+  line-height: 1.45;
+}
+.crash-card .primary { width: 100%; min-height: 48px; }
+
