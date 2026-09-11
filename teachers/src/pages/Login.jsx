@@ -19,13 +19,21 @@ export function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
   if (teacher) return <Navigate to="/desk" replace />
 
   async function onSubmit(e) {
     e.preventDefault()
-    const result = await login(email, password)
-    if (!result.ok) setError(tx(result.error))
+    if (busy) return
+    setBusy(true)
+    setError('')
+    try {
+      const result = await login(email, password)
+      if (!result.ok) setError(tx(result.error))
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -55,37 +63,40 @@ export function Login() {
           </div>
           <h3 className="login-card-title">{t('signIn')}</h3>
           <p className="muted">{t('loginHint')}</p>
-          <Field label={t('email')}>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={t('emailPlaceholder')}
-              autoComplete="username"
-              required
-            />
-          </Field>
-          <Field label={t('password')}>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t('yourPassword')}
-              autoComplete="current-password"
-              required
-            />
-          </Field>
+          <fieldset disabled={busy} className="modal-fields">
+            <Field label={t('email')}>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t('emailPlaceholder')}
+                autoComplete="username"
+                required
+              />
+            </Field>
+            <Field label={t('password')}>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t('yourPassword')}
+                autoComplete="current-password"
+                required
+              />
+            </Field>
+          </fieldset>
           {error ? <div className="error">{error}</div> : null}
           {bootError ? (
             <div className="error">
               {tx(bootError)}{' '}
-              <button className="ghost" type="button" onClick={boot} disabled={!ready}>
+              <button className="ghost" type="button" onClick={boot} disabled={!ready || busy}>
                 {t('tryAgain')}
               </button>
             </div>
           ) : null}
-          <button className="primary login-submit" type="submit">
-            {t('enterDesk')}
+          <button className={`primary login-submit${busy ? ' is-loading' : ''}`} type="submit" disabled={busy}>
+            {busy ? <span className="btn-spinner" aria-hidden="true" /> : null}
+            <span>{busy ? t('signingIn') : t('enterDesk')}</span>
           </button>
         </form>
       </main>

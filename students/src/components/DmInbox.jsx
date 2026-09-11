@@ -42,6 +42,7 @@ export function DmInbox({
   const [text, setText] = useState('')
   const [file, setFile] = useState(null)
   const [error, setError] = useState('')
+  const [sending, setSending] = useState(false)
   const threadRef = useRef(null)
 
   const active = threads.find((x) => x.id === activeId) || threads[0]
@@ -67,23 +68,28 @@ export function DmInbox({
 
   async function send(e) {
     e.preventDefault()
-    if (!active) return
+    if (!active || sending) return
     setError('')
-    const result = await onPost({
-      threadId: active.id,
-      body: text,
-      fileName: file?.fileName,
-      fileType: file?.fileType,
-      fileData: file?.fileData,
-    })
-    if (!result?.ok) {
-      setError(tx(result?.error || t('errRequest')))
-      return
+    setSending(true)
+    try {
+      const result = await onPost({
+        threadId: active.id,
+        body: text,
+        fileName: file?.fileName,
+        fileType: file?.fileType,
+        fileData: file?.fileData,
+      })
+      if (!result?.ok) {
+        setError(tx(result?.error || t('errRequest')))
+        return
+      }
+      setText('')
+      setFile(null)
+      const next = await loadMessages(active.id)
+      setMessages(next.messages || [])
+    } finally {
+      setSending(false)
     }
-    setText('')
-    setFile(null)
-    const next = await loadMessages(active.id)
-    setMessages(next.messages || [])
   }
 
   return (
@@ -210,10 +216,14 @@ export function DmInbox({
                   placeholder={t('writeMessage')}
                   enterKeyHint="send"
                 />
-                <button className="wa-send" type="submit" aria-label={t('send')} disabled={!text.trim() && !file}>
-                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M3.4 20.6 21 12 3.4 3.4 3 10.2l11 1.8L3 13.8z" />
-                  </svg>
+                <button className={`wa-send${sending ? ' is-loading' : ''}`} type="submit" aria-label={t('send')} disabled={sending || (!text.trim() && !file)}>
+                  {sending ? (
+                    <span className="btn-spinner" aria-hidden="true" />
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M3.4 20.6 21 12 3.4 3.4 3 10.2l11 1.8L3 13.8z" />
+                    </svg>
+                  )}
                 </button>
               </div>
               {error ? <div className="error">{error}</div> : null}

@@ -1,5 +1,19 @@
+import { useState } from 'react'
+
 export function StudentLeavesPanel({ leaves, onReview, t, lang }) {
+  const [busyKey, setBusyKey] = useState('')
+
   if (!leaves?.length) return <div className="card empty">{t('noStudentLeaveRequests')}</div>
+
+  async function review(id, status) {
+    if (busyKey) return
+    setBusyKey(`${id}:${status}`)
+    try {
+      await onReview?.(id, status)
+    } finally {
+      setBusyKey('')
+    }
+  }
 
   return (
     <div className="student-leave-board">
@@ -37,11 +51,23 @@ export function StudentLeavesPanel({ leaves, onReview, t, lang }) {
 
           {item.status === 'pending' ? (
             <div className="row-actions">
-              <button type="button" className="primary" onClick={() => onReview(item.id, 'approved')}>
-                {t('approve')}
+              <button
+                type="button"
+                className={`primary${busyKey === `${item.id}:approved` ? ' is-loading' : ''}`}
+                disabled={Boolean(busyKey)}
+                onClick={() => review(item.id, 'approved')}
+              >
+                {busyKey === `${item.id}:approved` ? <span className="btn-spinner" aria-hidden="true" /> : null}
+                <span>{busyKey === `${item.id}:approved` ? t('working') : t('approve')}</span>
               </button>
-              <button type="button" className="danger" onClick={() => onReview(item.id, 'rejected')}>
-                {t('reject')}
+              <button
+                type="button"
+                className={`danger${busyKey === `${item.id}:rejected` ? ' is-loading' : ''}`}
+                disabled={Boolean(busyKey)}
+                onClick={() => review(item.id, 'rejected')}
+              >
+                {busyKey === `${item.id}:rejected` ? <span className="btn-spinner" aria-hidden="true" /> : null}
+                <span>{busyKey === `${item.id}:rejected` ? t('working') : t('reject')}</span>
               </button>
             </div>
           ) : (
@@ -52,8 +78,14 @@ export function StudentLeavesPanel({ leaves, onReview, t, lang }) {
                   : '—'}
               </span>
               {item.status === 'approved' ? (
-                <button type="button" className="ghost" onClick={() => onReview(item.id, 'returned')}>
-                  {t('markReturned')}
+                <button
+                  type="button"
+                  className={`ghost${busyKey === `${item.id}:returned` ? ' is-loading' : ''}`}
+                  disabled={Boolean(busyKey)}
+                  onClick={() => review(item.id, 'returned')}
+                >
+                  {busyKey === `${item.id}:returned` ? <span className="btn-spinner" aria-hidden="true" /> : null}
+                  <span>{busyKey === `${item.id}:returned` ? t('working') : t('markReturned')}</span>
                 </button>
               ) : null}
             </div>

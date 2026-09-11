@@ -41,12 +41,22 @@ export function StudentProvider({ children }) {
   const [dmThreads, setDmThreads] = useState([])
   const [leaves, setLeaves] = useState([])
   const [toast, setToast] = useState(null)
+  const [actionBusy, setActionBusy] = useState(0)
   const [ready, setReady] = useState(false)
   const [bootError, setBootError] = useState('')
 
-  function notify(message) {
-    setToast({ message, id: `${Date.now()}` })
-    window.setTimeout(() => setToast(null), 2600)
+  function notify(message, tone = 'ok') {
+    setToast({ message, tone, id: `${Date.now()}` })
+    window.setTimeout(() => setToast(null), 3200)
+  }
+
+  async function withBusy(fn) {
+    setActionBusy((n) => n + 1)
+    try {
+      return await fn()
+    } finally {
+      setActionBusy((n) => Math.max(0, n - 1))
+    }
   }
 
   async function refresh(nextStudent = student) {
@@ -108,12 +118,15 @@ export function StudentProvider({ children }) {
   }, [grades, student])
 
   async function login(email, password) {
-    const result = await hub.loginStudent(email, password)
-    if (!result.ok) return result
-    setStudent(result.student)
-    saveSession(result.student)
-    await refresh(result.student)
-    return { ok: true }
+    return withBusy(async () => {
+      const result = await hub.loginStudent(email, password)
+      if (!result.ok) return result
+      setStudent(result.student)
+      saveSession(result.student)
+      await refresh(result.student)
+      notify(t('toastSignedIn') || 'Signed in.')
+      return { ok: true }
+    })
   }
 
   function logout() {
@@ -136,9 +149,11 @@ export function StudentProvider({ children }) {
         leaves,
         allowedCards,
         toast,
+        actionBusy,
         ready,
         bootError,
         boot,
+        notify,
         login,
         logout,
         loadMessages: hub.listMessages,
@@ -151,30 +166,36 @@ export function StudentProvider({ children }) {
         },
         async requestLeave(payload) {
           if (!student) return { ok: false, error: t('errSignIn') }
-          const result = await hub.requestStudentLeave(payload, student)
-          if (!result.ok) notify(tx(result.error))
-          else {
-            notify(t('toastLeaveSent'))
-            const lv = await hub.listStudentLeaves({ studentId: student.id })
-            if (lv.ok) setLeaves(lv.leaves)
-          }
-          return result
+          return withBusy(async () => {
+            const result = await hub.requestStudentLeave(payload, student)
+            if (!result.ok) notify(tx(result.error), 'bad')
+            else {
+              notify(t('toastLeaveSent'))
+              const lv = await hub.listStudentLeaves({ studentId: student.id })
+              if (lv.ok) setLeaves(lv.leaves)
+            }
+            return result
+          })
         },
         async postGroupMessage(payload) {
           if (!student) return { ok: false, error: t('errSignIn') }
-          const result = await hub.postMessage(payload, student)
-          if (!result.ok) notify(tx(result.error))
-          return result
+          return withBusy(async () => {
+            const result = await hub.postMessage(payload, student)
+            if (!result.ok) notify(tx(result.error), 'bad')
+            return result
+          })
         },
         async postDmMessage(payload) {
           if (!student) return { ok: false, error: t('errSignIn') }
-          const result = await hub.postDmMessage(payload, student)
-          if (!result.ok) notify(tx(result.error))
-          else {
-            const dms = await hub.listDmThreadsForStudent(student.id)
-            if (dms.ok) setDmThreads(dms.threads)
-          }
-          return result
+          return withBusy(async () => {
+            const result = await hub.postDmMessage(payload, student)
+            if (!result.ok) notify(tx(result.error), 'bad')
+            else {
+              const dms = await hub.listDmThreadsForStudent(student.id)
+              if (dms.ok) setDmThreads(dms.threads)
+            }
+            return result
+          })
         },
         async refreshDmThreads() {
           if (!student?.id) return { ok: true, threads: [] }

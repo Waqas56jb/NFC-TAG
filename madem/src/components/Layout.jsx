@@ -97,7 +97,7 @@ function Icon({ name }) {
 }
 
 export function Layout() {
-  const { user, isMadam, logout, toast, announcements, postAnnouncement, deleteAnnouncement } = useApp()
+  const { user, isMadam, logout, announcements, postAnnouncement, deleteAnnouncement } = useApp()
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
 
@@ -167,7 +167,6 @@ export function Layout() {
           <Outlet />
         </div>
       </div>
-      {toast ? <div className={`toast ${toast.tone === 'bad' ? 'bad' : ''}`}>{toast.message}</div> : null}
     </div>
   )
 }

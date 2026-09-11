@@ -21,6 +21,7 @@ export function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
   const title = useMemo(() => (asParent ? t('parentLoginTitle') : t('loginTitle')), [asParent, t])
   const lead = useMemo(() => (asParent ? t('parentLoginLead') : t('loginLead')), [asParent, t])
@@ -31,8 +32,15 @@ export function Login() {
 
   async function onSubmit(e) {
     e.preventDefault()
-    const result = await login(email, password)
-    if (!result.ok) setError(tx(result.error))
+    if (busy) return
+    setBusy(true)
+    setError('')
+    try {
+      const result = await login(email, password)
+      if (!result.ok) setError(tx(result.error))
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -52,37 +60,40 @@ export function Login() {
         <form className="login-sheet" onSubmit={onSubmit}>
           <h3>{signIn}</h3>
           <p className="muted login-hint">{hint}</p>
-          <Field label={t('email')}>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={t('emailPlaceholder')}
-              autoComplete="username"
-              required
-            />
-          </Field>
-          <Field label={t('password')}>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t('yourPassword')}
-              autoComplete="current-password"
-              required
-            />
-          </Field>
+          <fieldset disabled={busy} className="modal-fields">
+            <Field label={t('email')}>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t('emailPlaceholder')}
+                autoComplete="username"
+                required
+              />
+            </Field>
+            <Field label={t('password')}>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t('yourPassword')}
+                autoComplete="current-password"
+                required
+              />
+            </Field>
+          </fieldset>
           {error ? <div className="error">{error}</div> : null}
           {bootError ? (
             <div className="error">
               {tx(bootError)}{' '}
-              <button className="ghost" type="button" onClick={boot} disabled={!ready}>
+              <button className="ghost" type="button" onClick={boot} disabled={!ready || busy}>
                 {t('tryAgain')}
               </button>
             </div>
           ) : null}
-          <button className="primary app-cta" type="submit">
-            {asParent ? t('enterParentPortal') : t('enterDesk')}
+          <button className={`primary app-cta${busy ? ' is-loading' : ''}`} type="submit" disabled={busy}>
+            {busy ? <span className="btn-spinner" aria-hidden="true" /> : null}
+            <span>{busy ? t('signingIn') : asParent ? t('enterParentPortal') : t('enterDesk')}</span>
           </button>
           <Link className="scan-login-link" to="/scan">
             {t('scanTagCta')}

@@ -50,7 +50,7 @@ function Icon({ name }) {
 }
 
 export function Layout() {
-  const { teacher, logout, toast, announcements, inboxNotes, postAnnouncement, deleteAnnouncement } = useTeacher()
+  const { teacher, logout, announcements, inboxNotes, postAnnouncement, deleteAnnouncement } = useTeacher()
   const inbox = [...(inboxNotes || []), ...(announcements || [])].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
@@ -124,7 +124,6 @@ export function Layout() {
           <Outlet />
         </div>
       </div>
-      {toast ? <div className="toast">{toast.message}</div> : null}
     </div>
   )
 }

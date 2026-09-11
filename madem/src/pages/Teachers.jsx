@@ -336,7 +336,19 @@ function TeacherDaysPanel({ teachers, days, date, setDate, t, lang }) {
 }
 
 function TeacherLeavesPanel({ leaves, onReview, t, lang }) {
+  const [busyKey, setBusyKey] = useState('')
   if (leaves.length === 0) return <div className="card empty">{t('noLeavesYet')}</div>
+
+  async function review(id, status) {
+    if (busyKey) return
+    setBusyKey(`${id}:${status}`)
+    try {
+      await onReview?.(id, status)
+    } finally {
+      setBusyKey('')
+    }
+  }
+
   return (
     <div className="table-wrap card">
       <table>
@@ -359,8 +371,22 @@ function TeacherLeavesPanel({ leaves, onReview, t, lang }) {
               <td>
                 {item.status === 'pending' ? (
                   <div className="row-actions">
-                    <button className="primary" onClick={() => onReview(item.id, 'approved')}>{t('approve')}</button>
-                    <button className="danger" onClick={() => onReview(item.id, 'rejected')}>{t('reject')}</button>
+                    <button
+                      className={`primary${busyKey === `${item.id}:approved` ? ' is-loading' : ''}`}
+                      disabled={Boolean(busyKey)}
+                      onClick={() => review(item.id, 'approved')}
+                    >
+                      {busyKey === `${item.id}:approved` ? <span className="btn-spinner" aria-hidden="true" /> : null}
+                      <span>{busyKey === `${item.id}:approved` ? t('working') : t('approve')}</span>
+                    </button>
+                    <button
+                      className={`danger${busyKey === `${item.id}:rejected` ? ' is-loading' : ''}`}
+                      disabled={Boolean(busyKey)}
+                      onClick={() => review(item.id, 'rejected')}
+                    >
+                      {busyKey === `${item.id}:rejected` ? <span className="btn-spinner" aria-hidden="true" /> : null}
+                      <span>{busyKey === `${item.id}:rejected` ? t('working') : t('reject')}</span>
+                    </button>
                   </div>
                 ) : (
                   <span className="muted">{item.reviewedByName || '—'}</span>

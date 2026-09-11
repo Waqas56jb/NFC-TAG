@@ -25,6 +25,7 @@ export function StaffDmModal({ open, student, user, onClose, openThread, loadMes
   const [file, setFile] = useState(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [sending, setSending] = useState(false)
   const endRef = useRef(null)
 
   useEffect(() => {
@@ -65,23 +66,28 @@ export function StaffDmModal({ open, student, user, onClose, openThread, loadMes
 
   async function send(e) {
     e.preventDefault()
-    if (!thread) return
+    if (!thread || sending) return
     setError('')
-    const result = await onPost({
-      threadId: thread.id,
-      body: text,
-      fileName: file?.fileName,
-      fileType: file?.fileType,
-      fileData: file?.fileData,
-    })
-    if (!result?.ok) {
-      setError(tx(result?.error || t('errRequest')))
-      return
+    setSending(true)
+    try {
+      const result = await onPost({
+        threadId: thread.id,
+        body: text,
+        fileName: file?.fileName,
+        fileType: file?.fileType,
+        fileData: file?.fileData,
+      })
+      if (!result?.ok) {
+        setError(tx(result?.error || t('errRequest')))
+        return
+      }
+      setText('')
+      setFile(null)
+      const next = await loadMessages(thread.id)
+      setMessages(next.messages || [])
+    } finally {
+      setSending(false)
     }
-    setText('')
-    setFile(null)
-    const next = await loadMessages(thread.id)
-    setMessages(next.messages || [])
   }
 
   return (
@@ -132,8 +138,9 @@ export function StaffDmModal({ open, student, user, onClose, openThread, loadMes
                 }}
               />
             </label>
-            <button className="primary" type="submit">
-              {t('send')}
+            <button className={`primary${sending ? ' is-loading' : ''}`} type="submit" disabled={sending || busy || !thread}>
+              {sending ? <span className="btn-spinner" aria-hidden="true" /> : null}
+              <span>{sending ? t('working') : t('send')}</span>
             </button>
           </div>
           {error ? <div className="error">{error}</div> : null}

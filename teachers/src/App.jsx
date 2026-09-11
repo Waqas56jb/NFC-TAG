@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
+import { FeedbackChrome } from './components/Feedback'
 import { Layout } from './components/Layout'
 import { TeacherProvider, useTeacher } from './context/TeacherContext'
 import { resolveClassRoute } from './lib/school'
@@ -50,6 +51,7 @@ export default function App() {
   return (
     <TeacherProvider>
       <BrowserRouter>
+        <FeedbackChrome />
         <AppRoutes />
       </BrowserRouter>
     </TeacherProvider>

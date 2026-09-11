@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { FeedbackChrome } from './components/Feedback'
 import { Layout } from './components/Layout'
 import { AppProvider, useApp } from './context/AppContext'
 import { Account } from './pages/Account'
@@ -48,6 +49,7 @@ export default function App() {
   return (
     <AppProvider>
       <BrowserRouter>
+        <FeedbackChrome />
         <AppRoutes />
       </BrowserRouter>
     </AppProvider>

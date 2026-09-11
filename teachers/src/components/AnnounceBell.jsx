@@ -13,6 +13,8 @@ export function AnnounceBell({
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [deletingId, setDeletingId] = useState('')
   const unread = user ? unreadCount(announcements, user.role, user.id) : 0
 
   function toggle() {
@@ -23,10 +25,26 @@ export function AnnounceBell({
 
   async function submit(e) {
     e.preventDefault()
-    const result = await onPost?.({ title, body })
-    if (result?.ok) {
-      setTitle('')
-      setBody('')
+    if (busy) return
+    setBusy(true)
+    try {
+      const result = await onPost?.({ title, body })
+      if (result?.ok) {
+        setTitle('')
+        setBody('')
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function remove(id) {
+    if (deletingId) return
+    setDeletingId(id)
+    try {
+      await onDelete?.(id)
+    } finally {
+      setDeletingId('')
     }
   }
 
@@ -49,10 +67,13 @@ export function AnnounceBell({
           </div>
           {canPost ? (
             <form className="bell-form" onSubmit={submit}>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('announceTitle')} required />
-              <textarea value={body} onChange={(e) => setBody(e.target.value)} rows="3" placeholder={t('announceBody')} />
-              <button className="primary" type="submit">
-                {t('postAnnounce')}
+              <fieldset disabled={busy} className="modal-fields">
+                <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('announceTitle')} required />
+                <textarea value={body} onChange={(e) => setBody(e.target.value)} rows="3" placeholder={t('announceBody')} />
+              </fieldset>
+              <button className={`primary${busy ? ' is-loading' : ''}`} type="submit" disabled={busy}>
+                {busy ? <span className="btn-spinner" aria-hidden="true" /> : null}
+                <span>{busy ? t('working') : t('postAnnounce')}</span>
               </button>
             </form>
           ) : (
@@ -67,8 +88,13 @@ export function AnnounceBell({
                   <div className="bell-item-top">
                     <strong>{item.title}</strong>
                     {canPost && (user?.role === 'madam' || user?.id === item.authorId) ? (
-                      <button type="button" className="linkish" onClick={() => onDelete?.(item.id)}>
-                        {t('delete')}
+                      <button
+                        type="button"
+                        className="linkish"
+                        disabled={Boolean(deletingId)}
+                        onClick={() => remove(item.id)}
+                      >
+                        {deletingId === item.id ? t('working') : t('delete')}
                       </button>
                     ) : null}
                   </div>

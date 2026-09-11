@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { FeedbackChrome } from './components/Feedback'
 import { Layout } from './components/Layout'
 import { StudentProvider, useStudent } from './context/StudentContext'
 import { Attendance } from './pages/Attendance'
@@ -43,6 +44,7 @@ export default function App() {
   return (
     <StudentProvider>
       <BrowserRouter>
+        <FeedbackChrome />
         <AppRoutes />
       </BrowserRouter>
     </StudentProvider>

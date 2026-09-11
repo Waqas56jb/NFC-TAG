@@ -16,20 +16,27 @@ export function Account() {
   })
   const [error, setError] = useState('')
   const [done, setDone] = useState('')
+  const [busy, setBusy] = useState(false)
 
   if (!isMadam) return <Navigate to="/" replace />
 
   async function onSubmit(e) {
     e.preventDefault()
+    if (busy) return
+    setBusy(true)
     setDone('')
-    const result = await updateMadamAccount(form)
-    if (!result.ok) {
-      setError(tx(result.error))
-      return
+    try {
+      const result = await updateMadamAccount(form)
+      if (!result.ok) {
+        setError(tx(result.error))
+        return
+      }
+      setError('')
+      setDone(t('accountSaved'))
+      setForm((prev) => ({ ...prev, currentPassword: '', newPassword: '' }))
+    } finally {
+      setBusy(false)
     }
-    setError('')
-    setDone(t('accountSaved'))
-    setForm((prev) => ({ ...prev, currentPassword: '', newPassword: '' }))
   }
 
   return (
@@ -78,8 +85,9 @@ export function Account() {
           </Field>
           {error ? <div className="error">{error}</div> : null}
           {done ? <div className="muted" style={{ marginTop: 10 }}>{done}</div> : null}
-          <button className="primary" type="submit" style={{ marginTop: 18 }}>
-            {t('saveMadamAccount')}
+          <button className={`primary${busy ? ' is-loading' : ''}`} type="submit" style={{ marginTop: 18 }} disabled={busy}>
+            {busy ? <span className="btn-spinner" aria-hidden="true" /> : null}
+            <span>{busy ? t('saving') : t('saveMadamAccount')}</span>
           </button>
         </form>
 

@@ -54,7 +54,7 @@ const titles = {
 }
 
 export function Layout() {
-  const { student, toast, announcements } = useStudent()
+  const { student, announcements } = useStudent()
   const { t } = useI18n()
   const location = useLocation()
   const titleKey = titles[location.pathname] || 'brand'
@@ -96,7 +96,6 @@ export function Layout() {
           </NavLink>
         </nav>
 
-        {toast ? <div className="toast app-toast">{toast.message}</div> : null}
       </div>
     </div>
   )

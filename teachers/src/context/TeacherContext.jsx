@@ -12,6 +12,7 @@ export function TeacherProvider({ children }) {
   const [school, setSchool] = useState(emptySchool)
   const [session, setSession] = useState(() => loadTeacherSession())
   const [toast, setToast] = useState(null)
+  const [actionBusy, setActionBusy] = useState(0)
   const [ready, setReady] = useState(false)
   const [bootError, setBootError] = useState('')
   const [groups, setGroups] = useState([])
@@ -73,23 +74,35 @@ export function TeacherProvider({ children }) {
     [school, teacher],
   )
 
-  function notify(message) {
-    setToast({ message, id: `${Date.now()}` })
-    window.setTimeout(() => setToast(null), 2600)
+  function notify(message, tone = 'ok') {
+    setToast({ message, tone, id: `${Date.now()}` })
+    window.setTimeout(() => setToast(null), 3200)
+  }
+
+  async function withBusy(fn) {
+    setActionBusy((n) => n + 1)
+    try {
+      return await fn()
+    } finally {
+      setActionBusy((n) => Math.max(0, n - 1))
+    }
   }
 
   async function login(email, password) {
-    const result = await api.loginTeacher(email, password)
-    if (!result.ok) return result
-    setSession(result.teacher)
-    saveTeacherSession(result.teacher)
-    const data = await api.fetchSchool()
-    setSchool(data)
-    const [g, a] = await Promise.all([hub.listGroups(), hub.listAnnouncements()])
-    if (g.ok) setGroups(g.groups)
-    if (a.ok) setAnnouncements(a.announcements)
-    await refreshDesk(result.teacher.id)
-    return { ok: true }
+    return withBusy(async () => {
+      const result = await api.loginTeacher(email, password)
+      if (!result.ok) return result
+      setSession(result.teacher)
+      saveTeacherSession(result.teacher)
+      const data = await api.fetchSchool()
+      setSchool(data)
+      const [g, a] = await Promise.all([hub.listGroups(), hub.listAnnouncements()])
+      if (g.ok) setGroups(g.groups)
+      if (a.ok) setAnnouncements(a.announcements)
+      await refreshDesk(result.teacher.id)
+      notify(t('toastSignedIn') || 'Signed in.')
+      return { ok: true }
+    })
   }
 
   function logout() {
@@ -104,107 +117,135 @@ export function TeacherProvider({ children }) {
   async function saveAttendance({ date, gradeId, sectionId, marks }) {
     if (!teacher) return { ok: false, error: 'Not signed in.' }
     if (!canOpen(gradeId, sectionId)) return { ok: false, error: 'This class is not assigned to you.' }
-    const result = await api.upsertAttendance({ date, gradeId, sectionId, marks, teacher })
-    if (!result.ok) {
-      notify(tx(result.error))
+    return withBusy(async () => {
+      const result = await api.upsertAttendance({ date, gradeId, sectionId, marks, teacher })
+      if (!result.ok) {
+        notify(tx(result.error), 'bad')
+        return result
+      }
+      await refresh()
+      notify(result.created ? t('toastCreated') : date === todayKey() ? t('toastToday') : t('toastUpdated'))
       return result
-    }
-    await refresh()
-    notify(result.created ? t('toastCreated') : date === todayKey() ? t('toastToday') : t('toastUpdated'))
-    return result
+    })
   }
 
   return (
     <TeacherContext.Provider value={{
-      school, teacher, classes, toast, ready, bootError, boot, hasSession: Boolean(session), login, logout, canOpen, saveAttendance,
+      school, teacher, classes, toast, actionBusy, ready, bootError, boot, notify, hasSession: Boolean(session), login, logout, canOpen, saveAttendance,
       groups, announcements, inboxNotes, teacherDays, teacherLeaves, studentLeaves, loadMessages: hub.listMessages,
       async checkIn() {
         if (!teacher) return { ok: false, error: t('errSignIn') }
-        const result = await desk.checkIn(teacher)
-        if (!result.ok) { notify(tx(result.error)); return result }
-        await refreshDesk(teacher.id)
-        notify(t('toastCheckedIn'))
-        return result
+        return withBusy(async () => {
+          const result = await desk.checkIn(teacher)
+          if (!result.ok) { notify(tx(result.error), 'bad'); return result }
+          await refreshDesk(teacher.id)
+          notify(t('toastCheckedIn'))
+          return result
+        })
       },
       async checkOut() {
         if (!teacher) return { ok: false, error: t('errSignIn') }
-        const result = await desk.checkOut(teacher)
-        if (!result.ok) { notify(tx(result.error)); return result }
-        await refreshDesk(teacher.id)
-        notify(t('toastCheckedOut'))
-        return result
+        return withBusy(async () => {
+          const result = await desk.checkOut(teacher)
+          if (!result.ok) { notify(tx(result.error), 'bad'); return result }
+          await refreshDesk(teacher.id)
+          notify(t('toastCheckedOut'))
+          return result
+        })
       },
       async requestLeave(payload) {
         if (!teacher) return { ok: false, error: t('errSignIn') }
-        const result = await desk.requestLeave(payload, teacher)
-        if (!result.ok) { notify(tx(result.error)); return result }
-        await refreshDesk(teacher.id)
-        notify(t('toastLeaveRequested'))
-        return result
+        return withBusy(async () => {
+          const result = await desk.requestLeave(payload, teacher)
+          if (!result.ok) { notify(tx(result.error), 'bad'); return result }
+          await refreshDesk(teacher.id)
+          notify(t('toastLeaveRequested'))
+          return result
+        })
       },
       async reviewStudentLeave(id, status) {
         if (!teacher) return { ok: false, error: t('errSignIn') }
-        const result = await hub.reviewStudentLeave(id, status, { ...teacher, role: 'teacher' })
-        if (!result.ok) { notify(tx(result.error)); return result }
-        await refreshDesk(teacher.id)
-        notify(
-          status === 'approved'
-            ? t('toastStudentLeaveApproved')
-            : status === 'returned'
-              ? t('toastStudentLeaveReturned')
-              : t('toastStudentLeaveRejected'),
-        )
-        return result
+        return withBusy(async () => {
+          const result = await hub.reviewStudentLeave(id, status, { ...teacher, role: 'teacher' })
+          if (!result.ok) { notify(tx(result.error), 'bad'); return result }
+          await refreshDesk(teacher.id)
+          notify(
+            status === 'approved'
+              ? t('toastStudentLeaveApproved')
+              : status === 'returned'
+                ? t('toastStudentLeaveReturned')
+                : t('toastStudentLeaveRejected'),
+          )
+          return result
+        })
       },
       async createGroup(payload) {
         if (!teacher) return { ok: false, error: t('errSignIn') }
-        const result = await hub.createGroup(payload, teacher)
-        if (!result.ok) { notify(tx(result.error)); return result }
-        const g = await hub.listGroups(); if (g.ok) setGroups(g.groups)
-        notify(t('toastGroupCreated'))
-        return result
+        return withBusy(async () => {
+          const result = await hub.createGroup(payload, teacher)
+          if (!result.ok) { notify(tx(result.error), 'bad'); return result }
+          const g = await hub.listGroups(); if (g.ok) setGroups(g.groups)
+          notify(t('toastGroupCreated'))
+          return result
+        })
       },
       async updateGroupPhoto(id, photo) {
         if (!teacher) return { ok: false, error: t('errSignIn') }
-        const result = await hub.updateGroupPhoto(id, photo)
-        if (!result.ok) { notify(tx(result.error)); return result }
-        const g = await hub.listGroups(); if (g.ok) setGroups(g.groups)
-        notify(t('toastGroupPhoto'))
-        return result
+        return withBusy(async () => {
+          const result = await hub.updateGroupPhoto(id, photo)
+          if (!result.ok) { notify(tx(result.error), 'bad'); return result }
+          const g = await hub.listGroups(); if (g.ok) setGroups(g.groups)
+          notify(t('toastGroupPhoto'))
+          return result
+        })
       },
       async postGroupMessage(payload) {
         if (!teacher) return { ok: false, error: t('errSignIn') }
-        const result = await hub.postMessage(payload, teacher)
-        if (!result.ok) notify(tx(result.error))
-        return result
+        return withBusy(async () => {
+          const result = await hub.postMessage(payload, teacher)
+          if (!result.ok) notify(tx(result.error), 'bad')
+          return result
+        })
       },
       loadDmMessages: hub.listDmMessages,
       openDmThread: hub.openDmThread,
       async postDmMessage(payload) {
         if (!teacher) return { ok: false, error: t('errSignIn') }
-        const result = await hub.postDmMessage(payload, { ...teacher, role: 'teacher' })
-        if (!result.ok) notify(tx(result.error))
-        return result
+        return withBusy(async () => {
+          const result = await hub.postDmMessage(payload, { ...teacher, role: 'teacher' })
+          if (!result.ok) notify(tx(result.error), 'bad')
+          return result
+        })
       },
       async deleteGroupMessage(id) {
-        const result = await hub.deleteMessage(id)
-        if (!result.ok) notify(tx(result.error))
-        return result
+        return withBusy(async () => {
+          const result = await hub.deleteMessage(id)
+          if (!result.ok) notify(tx(result.error), 'bad')
+          else notify(t('toastMessageDeleted') || 'Message deleted.')
+          return result
+        })
       },
       async postAnnouncement(payload) {
         if (!teacher) return { ok: false, error: t('errSignIn') }
-        const result = await hub.postAnnouncement(payload, teacher)
-        if (!result.ok) { notify(tx(result.error)); return result }
-        const a = await hub.listAnnouncements(); if (a.ok) setAnnouncements(a.announcements)
-        notify(t('toastAnnouncePosted'))
-        return result
+        return withBusy(async () => {
+          const result = await hub.postAnnouncement(payload, teacher)
+          if (!result.ok) { notify(tx(result.error), 'bad'); return result }
+          const a = await hub.listAnnouncements(); if (a.ok) setAnnouncements(a.announcements)
+          notify(t('toastAnnouncePosted'))
+          return result
+        })
       },
       async deleteAnnouncement(id) {
-        const result = await hub.deleteAnnouncement(id)
-        if (result.ok) {
-          const a = await hub.listAnnouncements(); if (a.ok) setAnnouncements(a.announcements)
-        }
-        return result
+        return withBusy(async () => {
+          const result = await hub.deleteAnnouncement(id)
+          if (result.ok) {
+            const a = await hub.listAnnouncements(); if (a.ok) setAnnouncements(a.announcements)
+            notify(t('toastAnnounceDeleted') || 'Announcement removed.')
+          } else {
+            notify(tx(result.error), 'bad')
+          }
+          return result
+        })
       },
     }}>
       {children}

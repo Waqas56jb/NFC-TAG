@@ -12,6 +12,7 @@ export function AppProvider({ children }) {
   const [store, setStore] = useState(emptySchool)
   const [session, setSession] = useState(() => loadSession())
   const [toast, setToast] = useState(null)
+  const [actionBusy, setActionBusy] = useState(0)
   const [ready, setReady] = useState(false)
   const [bootError, setBootError] = useState('')
   const [groups, setGroups] = useState([])
@@ -68,7 +69,16 @@ export function AppProvider({ children }) {
 
   function notify(message, tone = 'ok') {
     setToast({ message, tone, id: `${Date.now()}` })
-    window.setTimeout(() => setToast(null), 2800)
+    window.setTimeout(() => setToast(null), 3200)
+  }
+
+  async function withBusy(fn) {
+    setActionBusy((n) => n + 1)
+    try {
+      return await fn()
+    } finally {
+      setActionBusy((n) => Math.max(0, n - 1))
+    }
   }
 
   async function after(result, okMessage) {
@@ -77,17 +87,20 @@ export function AppProvider({ children }) {
       return result
     }
     await refresh()
-    if (okMessage) notify(okMessage)
+    if (okMessage) notify(okMessage, 'ok')
     return result
   }
 
   async function login(email, password) {
-    const result = await api.loginStaff(email, password)
-    if (!result.ok) return result
-    setSession(result.session)
-    saveSession(result.session)
-    await refresh(result.session)
-    return { ok: true }
+    return withBusy(async () => {
+      const result = await api.loginStaff(email, password)
+      if (!result.ok) return result
+      setSession(result.session)
+      saveSession(result.session)
+      await refresh(result.session)
+      notify(t('toastSignedIn') || 'Signed in.')
+      return { ok: true }
+    })
   }
 
   function logout() {
@@ -97,78 +110,88 @@ export function AppProvider({ children }) {
 
   async function createTeacher(payload) {
     if (!user) return { ok: false, error: t('errSignIn') }
-    return after(await api.insertTeacher(payload, user), t('toastTeacherCreated'))
+    return withBusy(async () => after(await api.insertTeacher(payload, user), t('toastTeacherCreated')))
   }
 
   async function updateTeacherStatus(id, status) {
     const teacher = store.teachers.find((t) => t.id === id)
     if (!teacher) return
-    return after(await api.setTeacherStatus(id, status, user, teacher.name), status === 'blocked' ? t('toastTeacherBlocked') : t('toastTeacherRestored'))
+    return withBusy(async () =>
+      after(await api.setTeacherStatus(id, status, user, teacher.name), status === 'blocked' ? t('toastTeacherBlocked') : t('toastTeacherRestored')),
+    )
   }
 
   async function deleteTeacher(id) {
     const teacher = store.teachers.find((t) => t.id === id)
     if (!teacher) return
-    return after(await api.removeTeacher(id, user, teacher.name), t('toastTeacherDeleted'))
+    return withBusy(async () => after(await api.removeTeacher(id, user, teacher.name), t('toastTeacherDeleted')))
   }
 
   async function createSubUser(payload) {
-    return after(await api.insertSubUser(payload, user), t('toastSubCreated'))
+    return withBusy(async () => after(await api.insertSubUser(payload, user), t('toastSubCreated')))
   }
 
   async function updateSubUserStatus(id, status) {
     const sub = store.subUsers.find((s) => s.id === id)
     if (!sub) return
-    return after(await api.setSubUserStatus(id, status, user, sub.name), status === 'blocked' ? t('toastSubBlocked') : t('toastSubRestored'))
+    return withBusy(async () =>
+      after(await api.setSubUserStatus(id, status, user, sub.name), status === 'blocked' ? t('toastSubBlocked') : t('toastSubRestored')),
+    )
   }
 
   async function deleteSubUser(id) {
     const sub = store.subUsers.find((s) => s.id === id)
     if (!sub) return
-    return after(await api.removeSubUser(id, user, sub.name), t('toastSubDeleted'))
+    return withBusy(async () => after(await api.removeSubUser(id, user, sub.name), t('toastSubDeleted')))
   }
 
   async function updateMadamAccount({ name, email, currentPassword, newPassword }) {
     if (user?.role !== 'madam') return { ok: false, error: t('errOnlyMadam') }
     if (user.password !== currentPassword) return { ok: false, error: t('errBadPassword') }
-    const result = await api.updateMadam(user.id, { name, email, password: newPassword || user.password }, user)
-    return after(result, t('toastMadamUpdated'))
+    return withBusy(async () => {
+      const result = await api.updateMadam(user.id, { name, email, password: newPassword || user.password }, user)
+      return after(result, t('toastMadamUpdated'))
+    })
   }
 
   async function createClass(gradeName, sectionName) {
-    return after(await api.insertClass(gradeName, sectionName, user), t('toastClassCreated'))
+    return withBusy(async () => after(await api.insertClass(gradeName, sectionName, user), t('toastClassCreated')))
   }
 
   async function deleteClass(gradeId, sectionId) {
     const label = classLabel(store.grades, gradeId, sectionId)
-    return after(await api.removeClass(gradeId, sectionId, user, label), t('toastClassDeleted'))
+    return withBusy(async () => after(await api.removeClass(gradeId, sectionId, user, label), t('toastClassDeleted')))
   }
 
   async function createStudent(gradeId, sectionId, payload) {
-    return after(
-      await api.insertStudent(gradeId, sectionId, payload, user, classLabel(store.grades, gradeId, sectionId)),
-      t('toastStudentAdded'),
+    return withBusy(async () =>
+      after(
+        await api.insertStudent(gradeId, sectionId, payload, user, classLabel(store.grades, gradeId, sectionId)),
+        t('toastStudentAdded'),
+      ),
     )
   }
 
   async function updateStudent(id, payload) {
     const current = store.students.find((s) => s.id === id)
     if (!current) return { ok: false, error: t('errStudentMissing') }
-    return after(await api.patchStudent(id, { ...current, ...payload }, user), t('toastStudentUpdated'))
+    return withBusy(async () => after(await api.patchStudent(id, { ...current, ...payload }, user), t('toastStudentUpdated')))
   }
 
   async function deleteStudent(id) {
     const student = store.students.find((s) => s.id === id)
     if (!student) return
-    return after(await api.removeStudent(id, user, student.name), t('toastStudentDeleted'))
+    return withBusy(async () => after(await api.removeStudent(id, user, student.name), t('toastStudentDeleted')))
   }
 
   async function assignClass(teacherId, gradeId, sectionId) {
     const teacher = store.teachers.find((t) => t.id === teacherId)
     if (!teacher) return { ok: false, error: t('errTeacherMissing') }
-    return after(
-      await api.insertAssignment(teacherId, gradeId, sectionId, user, classLabel(store.grades, gradeId, sectionId), teacher.name),
-      t('toastAssigned'),
+    return withBusy(async () =>
+      after(
+        await api.insertAssignment(teacherId, gradeId, sectionId, user, classLabel(store.grades, gradeId, sectionId), teacher.name),
+        t('toastAssigned'),
+      ),
     )
   }
 
@@ -176,9 +199,11 @@ export function AppProvider({ children }) {
     const assignment = store.assignments.find((a) => a.id === id)
     if (!assignment) return
     const teacher = store.teachers.find((t) => t.id === assignment.teacherId)
-    return after(
-      await api.setAssignmentHidden(id, hidden, user, classLabel(store.grades, assignment.gradeId, assignment.sectionId), teacher?.name || 'teacher'),
-      hidden ? t('toastHidden') : t('toastShown'),
+    return withBusy(async () =>
+      after(
+        await api.setAssignmentHidden(id, hidden, user, classLabel(store.grades, assignment.gradeId, assignment.sectionId), teacher?.name || 'teacher'),
+        hidden ? t('toastHidden') : t('toastShown'),
+      ),
     )
   }
 
@@ -186,9 +211,11 @@ export function AppProvider({ children }) {
     const assignment = store.assignments.find((a) => a.id === id)
     if (!assignment) return
     const teacher = store.teachers.find((t) => t.id === assignment.teacherId)
-    return after(
-      await api.removeAssignment(id, user, classLabel(store.grades, assignment.gradeId, assignment.sectionId), teacher?.name || 'teacher'),
-      t('toastUnassigned'),
+    return withBusy(async () =>
+      after(
+        await api.removeAssignment(id, user, classLabel(store.grades, assignment.gradeId, assignment.sectionId), teacher?.name || 'teacher'),
+        t('toastUnassigned'),
+      ),
     )
   }
 
@@ -196,6 +223,7 @@ export function AppProvider({ children }) {
     store,
     user,
     toast,
+    actionBusy,
     ready,
     bootError,
     boot,
@@ -221,44 +249,50 @@ export function AppProvider({ children }) {
     unassignClass,
     async saveAttendance({ date, gradeId, sectionId, marks }) {
       if (!user) return { ok: false, error: t('errSignIn') }
-      const result = await api.upsertAttendance({ date, gradeId, sectionId, marks, teacher: user })
-      if (!result.ok) {
-        notify(tx(result.error), 'bad')
+      return withBusy(async () => {
+        const result = await api.upsertAttendance({ date, gradeId, sectionId, marks, teacher: user })
+        if (!result.ok) {
+          notify(tx(result.error), 'bad')
+          return result
+        }
+        await refresh()
+        notify(result.created ? t('toastCreated') : date === todayKey() ? t('toastToday') : t('toastUpdated'))
         return result
-      }
-      await refresh()
-      notify(result.created ? t('toastCreated') : date === todayKey() ? t('toastToday') : t('toastUpdated'))
-      return result
+      })
     },
     async reviewLeave(id, status) {
       if (!user) return { ok: false, error: t('errSignIn') }
-      const result = await desk.reviewLeave(id, status, user)
-      if (!result.ok) {
-        notify(tx(result.error), 'bad')
+      return withBusy(async () => {
+        const result = await desk.reviewLeave(id, status, user)
+        if (!result.ok) {
+          notify(tx(result.error), 'bad')
+          return result
+        }
+        const leaves = await desk.listLeaves()
+        if (leaves.ok) setTeacherLeaves(leaves.leaves)
+        notify(status === 'approved' ? t('toastLeaveApproved') : t('toastLeaveRejected'))
         return result
-      }
-      const leaves = await desk.listLeaves()
-      if (leaves.ok) setTeacherLeaves(leaves.leaves)
-      notify(status === 'approved' ? t('toastLeaveApproved') : t('toastLeaveRejected'))
-      return result
+      })
     },
     async reviewStudentLeave(id, status) {
       if (!user) return { ok: false, error: t('errSignIn') }
-      const result = await hub.reviewStudentLeave(id, status, user)
-      if (!result.ok) {
-        notify(tx(result.error), 'bad')
+      return withBusy(async () => {
+        const result = await hub.reviewStudentLeave(id, status, user)
+        if (!result.ok) {
+          notify(tx(result.error), 'bad')
+          return result
+        }
+        const leaves = await hub.listStudentLeaves()
+        if (leaves.ok) setStudentLeaves(leaves.leaves)
+        notify(
+          status === 'approved'
+            ? t('toastStudentLeaveApproved')
+            : status === 'returned'
+              ? t('toastStudentLeaveReturned')
+              : t('toastStudentLeaveRejected'),
+        )
         return result
-      }
-      const leaves = await hub.listStudentLeaves()
-      if (leaves.ok) setStudentLeaves(leaves.leaves)
-      notify(
-        status === 'approved'
-          ? t('toastStudentLeaveApproved')
-          : status === 'returned'
-            ? t('toastStudentLeaveReturned')
-            : t('toastStudentLeaveRejected'),
-      )
-      return result
+      })
     },
     groups,
     announcements,
@@ -270,64 +304,82 @@ export function AppProvider({ children }) {
     openDmThread: hub.openDmThread,
     async postDmMessage(payload) {
       if (!user) return { ok: false, error: t('errSignIn') }
-      const result = await hub.postDmMessage(payload, user)
-      if (!result.ok) notify(tx(result.error), 'bad')
-      return result
+      return withBusy(async () => {
+        const result = await hub.postDmMessage(payload, user)
+        if (!result.ok) notify(tx(result.error), 'bad')
+        return result
+      })
     },
     async createGroup(payload) {
       if (!user) return { ok: false, error: t('errSignIn') }
-      const result = await hub.createGroup(payload, user)
-      if (!result.ok) {
-        notify(tx(result.error), 'bad')
+      return withBusy(async () => {
+        const result = await hub.createGroup(payload, user)
+        if (!result.ok) {
+          notify(tx(result.error), 'bad')
+          return result
+        }
+        const g = await hub.listGroups()
+        if (g.ok) setGroups(g.groups)
+        notify(t('toastGroupCreated'))
         return result
-      }
-      const g = await hub.listGroups()
-      if (g.ok) setGroups(g.groups)
-      notify(t('toastGroupCreated'))
-      return result
+      })
     },
     async updateGroupPhoto(id, photo) {
       if (!user) return { ok: false, error: t('errSignIn') }
-      const result = await hub.updateGroupPhoto(id, photo)
-      if (!result.ok) {
-        notify(tx(result.error), 'bad')
+      return withBusy(async () => {
+        const result = await hub.updateGroupPhoto(id, photo)
+        if (!result.ok) {
+          notify(tx(result.error), 'bad')
+          return result
+        }
+        const g = await hub.listGroups()
+        if (g.ok) setGroups(g.groups)
+        notify(t('toastGroupPhoto'))
         return result
-      }
-      const g = await hub.listGroups()
-      if (g.ok) setGroups(g.groups)
-      notify(t('toastGroupPhoto'))
-      return result
+      })
     },
     async postGroupMessage(payload) {
       if (!user) return { ok: false, error: t('errSignIn') }
-      const result = await hub.postMessage(payload, user)
-      if (!result.ok) notify(tx(result.error), 'bad')
-      return result
+      return withBusy(async () => {
+        const result = await hub.postMessage(payload, user)
+        if (!result.ok) notify(tx(result.error), 'bad')
+        return result
+      })
     },
     async deleteGroupMessage(id) {
-      const result = await hub.deleteMessage(id)
-      if (!result.ok) notify(tx(result.error), 'bad')
-      return result
+      return withBusy(async () => {
+        const result = await hub.deleteMessage(id)
+        if (!result.ok) notify(tx(result.error), 'bad')
+        else notify(t('toastMessageDeleted') || 'Message deleted.')
+        return result
+      })
     },
     async postAnnouncement(payload) {
       if (!user) return { ok: false, error: t('errSignIn') }
-      const result = await hub.postAnnouncement(payload, user)
-      if (!result.ok) {
-        notify(tx(result.error), 'bad')
-        return result
-      }
-      const a = await hub.listAnnouncements()
-      if (a.ok) setAnnouncements(a.announcements)
-      notify(t('toastAnnouncePosted'))
-      return result
-    },
-    async deleteAnnouncement(id) {
-      const result = await hub.deleteAnnouncement(id)
-      if (result.ok) {
+      return withBusy(async () => {
+        const result = await hub.postAnnouncement(payload, user)
+        if (!result.ok) {
+          notify(tx(result.error), 'bad')
+          return result
+        }
         const a = await hub.listAnnouncements()
         if (a.ok) setAnnouncements(a.announcements)
-      }
-      return result
+        notify(t('toastAnnouncePosted'))
+        return result
+      })
+    },
+    async deleteAnnouncement(id) {
+      return withBusy(async () => {
+        const result = await hub.deleteAnnouncement(id)
+        if (result.ok) {
+          const a = await hub.listAnnouncements()
+          if (a.ok) setAnnouncements(a.announcements)
+          notify(t('toastAnnounceDeleted') || 'Announcement removed.')
+        } else {
+          notify(tx(result.error), 'bad')
+        }
+        return result
+      })
     },
   }
 

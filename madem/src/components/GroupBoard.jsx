@@ -43,6 +43,8 @@ export function GroupBoard({
   const [form, setForm] = useState({ gradeId: '', sectionId: '', photo: '' })
   const [roomOpen, setRoomOpen] = useState(false)
   const [photoBusy, setPhotoBusy] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [creating, setCreating] = useState(false)
 
   const active = visible.find((g) => g.id === activeId) || visible[0]
 
@@ -75,41 +77,52 @@ export function GroupBoard({
 
   async function send(e) {
     e.preventDefault()
-    if (!active || !canPost) return
+    if (!active || !canPost || sending) return
     setError('')
-    const result = await onPost({
-      groupId: active.id,
-      body: text,
-      fileName: file?.fileName,
-      fileType: file?.fileType,
-      fileData: file?.fileData,
-    })
-    if (!result?.ok) {
-      setError(tx(result?.error || t('errRequest')))
-      return
+    setSending(true)
+    try {
+      const result = await onPost({
+        groupId: active.id,
+        body: text,
+        fileName: file?.fileName,
+        fileType: file?.fileType,
+        fileData: file?.fileData,
+      })
+      if (!result?.ok) {
+        setError(tx(result?.error || t('errRequest')))
+        return
+      }
+      setText('')
+      setFile(null)
+      const next = await loadMessages(active.id)
+      setMessages(next.messages || [])
+    } finally {
+      setSending(false)
     }
-    setText('')
-    setFile(null)
-    const next = await loadMessages(active.id)
-    setMessages(next.messages || [])
   }
 
   async function create(e) {
     e.preventDefault()
-    const grade = gradeOptions.find((g) => g.id === form.gradeId)
-    const card = cards.find((c) => c.gradeId === form.gradeId && c.sectionId === form.sectionId)
-    const name = form.sectionId
-      ? t('classTitle', { grade: card?.gradeName || '', section: card?.sectionName || '' })
-      : `${grade?.name || ''} · ${t('allSections')}`
-    const result = await onCreate({
-      name,
-      gradeId: form.gradeId,
-      sectionId: form.sectionId,
-      photo: form.photo || undefined,
-    })
-    if (result?.ok) {
-      setOpen(false)
-      setForm({ gradeId: '', sectionId: '', photo: '' })
+    if (creating) return
+    setCreating(true)
+    try {
+      const grade = gradeOptions.find((g) => g.id === form.gradeId)
+      const card = cards.find((c) => c.gradeId === form.gradeId && c.sectionId === form.sectionId)
+      const name = form.sectionId
+        ? t('classTitle', { grade: card?.gradeName || '', section: card?.sectionName || '' })
+        : `${grade?.name || ''} · ${t('allSections')}`
+      const result = await onCreate({
+        name,
+        gradeId: form.gradeId,
+        sectionId: form.sectionId,
+        photo: form.photo || undefined,
+      })
+      if (result?.ok) {
+        setOpen(false)
+        setForm({ gradeId: '', sectionId: '', photo: '' })
+      }
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -178,8 +191,9 @@ export function GroupBoard({
                 </option>
               ))}
             </select>
-            <button className="primary wa-btn" type="submit">
-              {t('createGroup')}
+            <button className={`primary wa-btn${creating ? ' is-loading' : ''}`} type="submit" disabled={creating}>
+              {creating ? <span className="btn-spinner" aria-hidden="true" /> : null}
+              <span>{creating ? t('working') : t('createGroup')}</span>
             </button>
           </form>
         ) : null}
@@ -279,8 +293,9 @@ export function GroupBoard({
                     }}
                   />
                 </label>
-                <button className="primary wa-btn" type="submit">
-                  {t('send')}
+                <button className={`primary wa-btn${sending ? ' is-loading' : ''}`} type="submit" disabled={sending}>
+                  {sending ? <span className="btn-spinner" aria-hidden="true" /> : null}
+                  <span>{sending ? t('working') : t('send')}</span>
                 </button>
                 {error ? <div className="error">{error}</div> : null}
               </form>

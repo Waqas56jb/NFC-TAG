@@ -44,6 +44,7 @@ export function StaffChatDesk({
   const [file, setFile] = useState(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [sending, setSending] = useState(false)
   const [mobilePane, setMobilePane] = useState('sections') // sections | students | room
 
   const activeCard = cards.find((c) => `${c.gradeId}:${c.sectionId}` === sectionKey) || cards[0]
@@ -116,24 +117,29 @@ export function StaffChatDesk({
 
   async function send(e) {
     e.preventDefault()
-    if (!thread) return
+    if (!thread || sending) return
     setError('')
-    const result = await onPost({
-      threadId: thread.id,
-      body: text,
-      fileName: file?.fileName,
-      fileType: file?.fileType,
-      fileData: file?.fileData,
-    })
-    if (!result?.ok) {
-      setError(tx(result?.error || t('errRequest')))
-      return
+    setSending(true)
+    try {
+      const result = await onPost({
+        threadId: thread.id,
+        body: text,
+        fileName: file?.fileName,
+        fileType: file?.fileType,
+        fileData: file?.fileData,
+      })
+      if (!result?.ok) {
+        setError(tx(result?.error || t('errRequest')))
+        return
+      }
+      setText('')
+      setFile(null)
+      const next = await loadMessages(thread.id)
+      setMessages(next.messages || [])
+      onThreadsRefresh?.()
+    } finally {
+      setSending(false)
     }
-    setText('')
-    setFile(null)
-    const next = await loadMessages(thread.id)
-    setMessages(next.messages || [])
-    onThreadsRefresh?.()
   }
 
   return (
@@ -335,8 +341,9 @@ export function StaffChatDesk({
                   }}
                 />
               </label>
-              <button className="primary wa-btn" type="submit">
-                {t('send')}
+              <button className={`primary wa-btn${sending ? ' is-loading' : ''}`} type="submit" disabled={sending || !thread}>
+                {sending ? <span className="btn-spinner" aria-hidden="true" /> : null}
+                <span>{sending ? t('working') : t('send')}</span>
               </button>
               {error ? <div className="error">{error}</div> : null}
             </form>

@@ -196,8 +196,9 @@ export function Leave() {
 
         {error ? <div className="error">{error}</div> : null}
 
-        <button className="primary leave-submit" type="submit" disabled={busy || !type}>
-          {busy ? t('sending') : t('sendLeaveRequest')}
+        <button className={`primary leave-submit${busy ? ' is-loading' : ''}`} type="submit" disabled={busy || !type}>
+          {busy ? <span className="btn-spinner" aria-hidden="true" /> : null}
+          <span>{busy ? t('working') : t('sendLeaveRequest')}</span>
         </button>
       </form>
 

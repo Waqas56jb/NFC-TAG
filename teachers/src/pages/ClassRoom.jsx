@@ -297,8 +297,9 @@ export function ClassRoom() {
               <button className="ghost" onClick={() => setAll('absent')}>
                 {t('allAbsent')}
               </button>
-              <button className="primary" disabled={!date || saving} onClick={save}>
-                {saving ? t('saving') : t('saveAttendance')}
+              <button className={`primary${saving ? ' is-loading' : ''}`} disabled={!date || saving} onClick={save}>
+                {saving ? <span className="btn-spinner" aria-hidden="true" /> : null}
+                <span>{saving ? t('saving') : t('saveAttendance')}</span>
               </button>
             </div>
             <div className="attend-list">

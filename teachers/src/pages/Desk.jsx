@@ -93,11 +93,13 @@ export function Desk() {
         </div>
 
         <div className="desk-actions">
-          <button className="primary" disabled={checkedIn || busy === 'in'} onClick={onCheckIn}>
-            {busy === 'in' ? t('saving') : t('checkIn')}
+          <button className={`primary${busy === 'in' ? ' is-loading' : ''}`} disabled={checkedIn || busy === 'in'} onClick={onCheckIn}>
+            {busy === 'in' ? <span className="btn-spinner" aria-hidden="true" /> : null}
+            <span>{busy === 'in' ? t('saving') : t('checkIn')}</span>
           </button>
-          <button className="ghost" disabled={!checkedIn || checkedOut || busy === 'out'} onClick={onCheckOut}>
-            {busy === 'out' ? t('saving') : t('checkOut')}
+          <button className={`ghost${busy === 'out' ? ' is-loading' : ''}`} disabled={!checkedIn || checkedOut || busy === 'out'} onClick={onCheckOut}>
+            {busy === 'out' ? <span className="btn-spinner" aria-hidden="true" /> : null}
+            <span>{busy === 'out' ? t('saving') : t('checkOut')}</span>
           </button>
         </div>
       </article>
@@ -164,8 +166,9 @@ export function Desk() {
               <span>{t('leaveReason')}</span>
               <textarea rows="3" value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} placeholder={t('leaveReasonHint')} />
             </label>
-            <button className="primary" type="submit" disabled={busy === 'leave'}>
-              {busy === 'leave' ? t('saving') : t('sendLeave')}
+            <button className={`primary${busy === 'leave' ? ' is-loading' : ''}`} type="submit" disabled={busy === 'leave'}>
+              {busy === 'leave' ? <span className="btn-spinner" aria-hidden="true" /> : null}
+              <span>{busy === 'leave' ? t('saving') : t('sendLeave')}</span>
             </button>
           </form>
           <div className="leave-mine">
