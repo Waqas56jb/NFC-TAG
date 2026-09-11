@@ -2114,6 +2114,71 @@ td.hot {
   box-shadow: 0 0 0 1px rgba(196, 122, 58, 0.12);
 }
 
+/* ——— Groups page + staff DM desk ——— */
+.groups-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  height: calc(100dvh - 100px);
+  max-height: calc(100dvh - 100px);
+}
+.page:has(.groups-page) {
+  max-width: none;
+  padding: 16px 18px 18px;
+}
+.groups-switch {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 12px;
+  background: #efe6d4;
+  width: fit-content;
+  flex-shrink: 0;
+}
+.groups-switch button {
+  border: 0;
+  background: transparent;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #5d6b63;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.groups-switch button.on {
+  background: #fff;
+  color: #14241c;
+  box-shadow: 0 4px 12px rgba(28,42,34,.08);
+}
+.groups-page .wa-shell,
+.groups-page .staff-chat-desk {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+}
+.staff-chat-desk {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--card, #fff);
+  border: 1px solid #eadfca;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 10px;
+}
+.staff-chat-tabs {
+  display: inline-flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
 .staff-chat-tabs button {
   border: 0;
   background: #f3ead8;
