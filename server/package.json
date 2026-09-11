@@ -1,0 +1,17 @@
+{
+  "name": "nfc-tag-server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "db:setup": "node scripts/setup-nfctag-db.mjs",
+    "db:seed": "node scripts/seed-nfctag-db.mjs",
+    "db:students": "node scripts/add-section-students.mjs",
+    "db:attendance": "node scripts/seed-attendance-history.mjs",
+    "db:groups": "node scripts/setup-groups.mjs",
+    "db:group-photos": "node scripts/setup-group-photos.mjs",
+    "db:desk": "node scripts/setup-teacher-desk.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.23.0"
+  }
+}
