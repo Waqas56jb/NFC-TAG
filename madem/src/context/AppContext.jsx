@@ -18,6 +18,7 @@ export function AppProvider({ children }) {
   const [announcements, setAnnouncements] = useState([])
   const [teacherDays, setTeacherDays] = useState([])
   const [teacherLeaves, setTeacherLeaves] = useState([])
+  const [studentLeaves, setStudentLeaves] = useState([])
 
   const user = useMemo(() => {
     if (!session) return null
@@ -33,16 +34,18 @@ export function AppProvider({ children }) {
   async function refresh(nextSession = session) {
     const data = await api.fetchSchool(nextSession)
     setStore(data)
-    const [g, a, days, leaves] = await Promise.all([
+    const [g, a, days, leaves, studentPass] = await Promise.all([
       hub.listGroups(),
       hub.listAnnouncements(),
       desk.listTeacherDays(),
       desk.listLeaves(),
+      hub.listStudentLeaves(),
     ])
     if (g.ok) setGroups(g.groups)
     if (a.ok) setAnnouncements(a.announcements)
     if (days.ok) setTeacherDays(days.days)
     if (leaves.ok) setTeacherLeaves(leaves.leaves)
+    if (studentPass.ok) setStudentLeaves(studentPass.leaves)
     setBootError('')
     return data
   }
@@ -238,10 +241,29 @@ export function AppProvider({ children }) {
       notify(status === 'approved' ? t('toastLeaveApproved') : t('toastLeaveRejected'))
       return result
     },
+    async reviewStudentLeave(id, status) {
+      if (!user) return { ok: false, error: t('errSignIn') }
+      const result = await hub.reviewStudentLeave(id, status, user)
+      if (!result.ok) {
+        notify(tx(result.error), 'bad')
+        return result
+      }
+      const leaves = await hub.listStudentLeaves()
+      if (leaves.ok) setStudentLeaves(leaves.leaves)
+      notify(
+        status === 'approved'
+          ? t('toastStudentLeaveApproved')
+          : status === 'returned'
+            ? t('toastStudentLeaveReturned')
+            : t('toastStudentLeaveRejected'),
+      )
+      return result
+    },
     groups,
     announcements,
     teacherDays,
     teacherLeaves,
+    studentLeaves,
     loadMessages: hub.listMessages,
     loadDmMessages: hub.listDmMessages,
     openDmThread: hub.openDmThread,

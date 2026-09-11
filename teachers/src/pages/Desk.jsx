@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { StudentLeavesPanel } from '../components/StudentLeavesPanel'
 import { useTeacher } from '../context/TeacherContext'
 import { useI18n } from '../i18n/I18nContext'
 import { prettyDate, prettyTime, todayKey } from '../lib/school'
@@ -13,7 +14,7 @@ function hoursBetween(start, end) {
 }
 
 export function Desk() {
-  const { teacher, teacherDays, teacherLeaves, checkIn, checkOut, requestLeave } = useTeacher()
+  const { teacher, classes, teacherDays, teacherLeaves, studentLeaves, checkIn, checkOut, requestLeave, reviewStudentLeave } = useTeacher()
   const { t, lang } = useI18n()
   const [form, setForm] = useState({ startDate: todayKey(), endDate: todayKey(), reason: '' })
   const [busy, setBusy] = useState('')
@@ -24,6 +25,17 @@ export function Desk() {
   )
   const todayRow = mine.find((d) => d.date === today)
   const leaves = teacherLeaves.filter((item) => item.teacherId === teacher.id)
+  const myClassKeys = useMemo(
+    () => new Set((classes || []).map((c) => `${c.gradeId}:${c.sectionId}`)),
+    [classes],
+  )
+  const classPasses = useMemo(
+    () =>
+      (studentLeaves || []).filter(
+        (item) => !item.gradeId || !item.sectionId || myClassKeys.has(`${item.gradeId}:${item.sectionId}`),
+      ),
+    [studentLeaves, myClassKeys],
+  )
   const checkedIn = Boolean(todayRow?.checkInAt)
   const checkedOut = Boolean(todayRow?.checkOutAt)
   const statusLabel = checkedOut ? t('statusOut') : checkedIn ? t('statusIn') : t('statusAway')
@@ -89,6 +101,14 @@ export function Desk() {
           </button>
         </div>
       </article>
+
+      <section className="card desk-panel">
+        <div className="desk-panel-head">
+          <h3>{t('studentPassTitle')}</h3>
+          <p className="muted">{t('studentPassHint')}</p>
+        </div>
+        <StudentLeavesPanel leaves={classPasses} onReview={reviewStudentLeave} t={t} lang={lang} />
+      </section>
 
       <div className="desk-grid">
         <section className="card desk-panel">

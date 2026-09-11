@@ -1811,3 +1811,49 @@ td.hot {
 .staff-dm-row input { flex: 1; min-width: 160px; border: 1px solid #eadfca; border-radius: 10px; padding: 10px 12px; font: inherit; }
 .row-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 
+
+.student-leave-board {
+  display: grid;
+  gap: 12px;
+}
+.student-leave-card {
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--card, #fff);
+  border: 1px solid #eadfca;
+  box-shadow: var(--shadow, 0 8px 24px rgba(28,42,34,.06));
+}
+.student-leave-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.student-leave-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.student-leave-meta span { color: var(--muted, #6b756f); font-size: .85rem; }
+.student-leave-note {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f6f1e8;
+  color: #3a463f;
+}
+.student-leave-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.student-leave-card.status-pending {
+  border-color: #e6c98a;
+  box-shadow: 0 0 0 1px rgba(196, 122, 58, 0.12);
+}
+

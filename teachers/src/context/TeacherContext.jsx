@@ -18,17 +18,20 @@ export function TeacherProvider({ children }) {
   const [announcements, setAnnouncements] = useState([])
   const [teacherDays, setTeacherDays] = useState([])
   const [teacherLeaves, setTeacherLeaves] = useState([])
+  const [studentLeaves, setStudentLeaves] = useState([])
   const [inboxNotes, setInboxNotes] = useState([])
 
   async function refreshDesk(teacherId = session?.id) {
-    const [days, leaves, notes] = await Promise.all([
+    const [days, leaves, notes, passes] = await Promise.all([
       desk.listTeacherDays(),
       desk.listLeaves(),
       teacherId ? desk.listNotifications(teacherId) : Promise.resolve({ ok: true, notifications: [] }),
+      hub.listStudentLeaves(),
     ])
     if (days.ok) setTeacherDays(days.days)
     if (leaves.ok) setTeacherLeaves(leaves.leaves)
     if (notes.ok) setInboxNotes(notes.notifications)
+    if (passes.ok) setStudentLeaves(passes.leaves)
   }
 
   async function refresh() {
@@ -114,7 +117,7 @@ export function TeacherProvider({ children }) {
   return (
     <TeacherContext.Provider value={{
       school, teacher, classes, toast, ready, bootError, boot, hasSession: Boolean(session), login, logout, canOpen, saveAttendance,
-      groups, announcements, inboxNotes, teacherDays, teacherLeaves, loadMessages: hub.listMessages,
+      groups, announcements, inboxNotes, teacherDays, teacherLeaves, studentLeaves, loadMessages: hub.listMessages,
       async checkIn() {
         if (!teacher) return { ok: false, error: t('errSignIn') }
         const result = await desk.checkIn(teacher)
@@ -137,6 +140,20 @@ export function TeacherProvider({ children }) {
         if (!result.ok) { notify(tx(result.error)); return result }
         await refreshDesk(teacher.id)
         notify(t('toastLeaveRequested'))
+        return result
+      },
+      async reviewStudentLeave(id, status) {
+        if (!teacher) return { ok: false, error: t('errSignIn') }
+        const result = await hub.reviewStudentLeave(id, status, { ...teacher, role: 'teacher' })
+        if (!result.ok) { notify(tx(result.error)); return result }
+        await refreshDesk(teacher.id)
+        notify(
+          status === 'approved'
+            ? t('toastStudentLeaveApproved')
+            : status === 'returned'
+              ? t('toastStudentLeaveReturned')
+              : t('toastStudentLeaveRejected'),
+        )
         return result
       },
       async createGroup(payload) {

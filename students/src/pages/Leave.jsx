@@ -81,6 +81,17 @@ export function Leave() {
     () => (student ? classLabel(grades, student.gradeId, student.sectionId) : ''),
     [grades, student],
   )
+  const classMeta = useMemo(() => {
+    const cards = grades.flatMap((grade) =>
+      (grade.sections || []).map((section) => ({
+        gradeId: grade.id,
+        sectionId: section.id,
+        gradeName: grade.name,
+        sectionName: section.name,
+      })),
+    )
+    return cards.find((c) => c.gradeId === student?.gradeId && c.sectionId === student?.sectionId) || {}
+  }, [grades, student])
 
   if (!student) return null
 
@@ -97,8 +108,8 @@ export function Leave() {
     const result = await requestLeave({
       leaveType: type,
       note,
-      gradeName: klass.split(' · ')[0] || '',
-      sectionName: klass.split(' · ')[1] || '',
+      gradeName: classMeta.gradeName || '',
+      sectionName: classMeta.sectionName || '',
     })
     setBusy(false)
     if (!result?.ok) {

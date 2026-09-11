@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Field, Modal } from '../components/Modal'
 import { Secret } from '../components/Secret'
+import { StudentLeavesPanel } from '../components/StudentLeavesPanel'
 import { useApp } from '../context/AppContext'
 import { useI18n } from '../i18n/I18nContext'
 import { listClassCards, prettyDate, prettyTime, todayKey } from '../lib/school'
@@ -8,7 +9,7 @@ import { listClassCards, prettyDate, prettyTime, todayKey } from '../lib/school'
 const emptyForm = { name: '', email: '', password: '', subject: '' }
 
 export function Teachers() {
-  const { store, user, createTeacher, updateTeacherStatus, deleteTeacher, assignClass, hideAssignment, unassignClass, teacherDays, teacherLeaves, reviewLeave } = useApp()
+  const { store, user, createTeacher, updateTeacherStatus, deleteTeacher, assignClass, hideAssignment, unassignClass, teacherDays, teacherLeaves, studentLeaves, reviewLeave, reviewStudentLeave } = useApp()
   const { t, tx, lang } = useI18n()
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
@@ -69,6 +70,12 @@ export function Teachers() {
             <i className="tab-count">{teacherLeaves.filter((item) => item.status === 'pending').length}</i>
           ) : null}
         </button>
+        <button className={tab === 'passes' ? 'primary' : 'ghost'} onClick={() => setTab('passes')}>
+          {t('tabStudentPasses')}
+          {studentLeaves.filter((item) => item.status === 'pending').length ? (
+            <i className="tab-count">{studentLeaves.filter((item) => item.status === 'pending').length}</i>
+          ) : null}
+        </button>
       </div>
 
       {tab === 'days' ? (
@@ -77,6 +84,10 @@ export function Teachers() {
 
       {tab === 'leaves' ? (
         <TeacherLeavesPanel leaves={teacherLeaves} onReview={reviewLeave} t={t} lang={lang} />
+      ) : null}
+
+      {tab === 'passes' ? (
+        <StudentLeavesPanel leaves={studentLeaves} onReview={reviewStudentLeave} t={t} lang={lang} />
       ) : null}
 
       {tab === 'staff' ? (
