@@ -1,6 +1,7 @@
-/** Backend host (Vercel proxy). Falls back to direct Supabase only if unset. */
-const url = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY
+import { API_KEY, API_URL } from './config'
+
+const url = API_URL
+const key = API_KEY
 
 function headers(extra = {}) {
   return {
@@ -13,7 +14,7 @@ function headers(extra = {}) {
 }
 
 async function request(path, options = {}) {
-  if (!url || !key) return { data: null, error: { message: 'Missing Supabase URL or key in .env' } }
+  if (!url || !key) return { data: null, error: { message: 'Missing API URL or key in .env' } }
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), options.timeoutMs || 15000)
   try {

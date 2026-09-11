@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
+import { API_KEY, API_URL } from './config'
 import { createDesk } from './desk'
 import { createHub } from './hub'
 import { createNftagApi } from './nfctagApi'
 import { rest } from './rest'
 
-const url = import.meta.env.VITE_SUPABASE_URL
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY
+const url = API_URL
+const key = API_KEY
 
 export const supabase = url && key
   ? createClient(url, key, {
