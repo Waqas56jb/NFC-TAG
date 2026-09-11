@@ -39,6 +39,7 @@ export function StudentProvider({ children }) {
   const [announcements, setAnnouncements] = useState([])
   const [attendance, setAttendance] = useState([])
   const [dmThreads, setDmThreads] = useState([])
+  const [leaves, setLeaves] = useState([])
   const [toast, setToast] = useState(null)
   const [ready, setReady] = useState(false)
   const [bootError, setBootError] = useState('')
@@ -69,8 +70,11 @@ export function StudentProvider({ children }) {
       if (nextStudent?.id) {
         const dms = await hub.listDmThreadsForStudent(nextStudent.id)
         if (dms.ok) setDmThreads(dms.threads)
+        const lv = await hub.listStudentLeaves({ studentId: nextStudent.id })
+        if (lv.ok) setLeaves(lv.leaves)
       } else {
         setDmThreads([])
+        setLeaves([])
       }
       setBootError('')
       return school
@@ -117,6 +121,7 @@ export function StudentProvider({ children }) {
     setStudent(null)
     setAttendance([])
     setDmThreads([])
+    setLeaves([])
   }
 
   return (
@@ -128,6 +133,7 @@ export function StudentProvider({ children }) {
         attendance,
         announcements,
         dmThreads,
+        leaves,
         allowedCards,
         toast,
         ready,
@@ -137,6 +143,23 @@ export function StudentProvider({ children }) {
         logout,
         loadMessages: hub.listMessages,
         loadDmMessages: hub.listDmMessages,
+        async refreshLeaves() {
+          if (!student?.id) return { ok: true, leaves: [] }
+          const lv = await hub.listStudentLeaves({ studentId: student.id })
+          if (lv.ok) setLeaves(lv.leaves)
+          return lv
+        },
+        async requestLeave(payload) {
+          if (!student) return { ok: false, error: t('errSignIn') }
+          const result = await hub.requestStudentLeave(payload, student)
+          if (!result.ok) notify(tx(result.error))
+          else {
+            notify(t('toastLeaveSent'))
+            const lv = await hub.listStudentLeaves({ studentId: student.id })
+            if (lv.ok) setLeaves(lv.leaves)
+          }
+          return result
+        },
         async postGroupMessage(payload) {
           if (!student) return { ok: false, error: t('errSignIn') }
           const result = await hub.postMessage(payload, student)

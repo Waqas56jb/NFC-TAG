@@ -1,4 +1,5 @@
 import { createDmApi } from './dm'
+import { createStudentLeaveApi } from './studentLeave'
 
 function parseMarks(value) {
   if (!value) return {}
@@ -46,6 +47,7 @@ export function createHub(rest) {
   }
   return {
     ...createDmApi(rest),
+    ...createStudentLeaveApi(rest),
     async listGroups() {
       const res = await rest.get('nfctag_groups', '?select=*&order=created_at.desc&limit=200')
       if (res.error) return { ok: false, error: res.error.message, groups: [] }

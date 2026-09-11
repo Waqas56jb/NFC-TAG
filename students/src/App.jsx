@@ -3,6 +3,7 @@ import { Layout } from './components/Layout'
 import { StudentProvider, useStudent } from './context/StudentContext'
 import { Attendance } from './pages/Attendance'
 import { Groups } from './pages/Groups'
+import { Leave } from './pages/Leave'
 import { Login } from './pages/Login'
 import { Profile } from './pages/Profile'
 
@@ -25,6 +26,7 @@ function AppRoutes() {
       >
         <Route path="/profile" element={<Profile />} />
         <Route path="/attendance" element={<Attendance />} />
+        <Route path="/leave" element={<Leave />} />
         <Route path="/groups" element={<Groups />} />
         <Route path="/" element={<Navigate to="/profile" replace />} />
       </Route>

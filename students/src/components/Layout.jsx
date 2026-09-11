@@ -31,6 +31,14 @@ function TabIcon({ name }) {
       </svg>
     )
   }
+  if (name === 'leave') {
+    return (
+      <svg {...common}>
+        <path d="M9 4h6a2 2 0 0 1 2 2v14l-5-2.5L7 20V6a2 2 0 0 1 2-2z" />
+        <path d="M10 9h4M10 13h4" />
+      </svg>
+    )
+  }
   return (
     <svg {...common}>
       <path d="M5 6.5A2.5 2.5 0 0 1 7.5 4H16a3 3 0 0 1 3 3v6.5a2.5 2.5 0 0 1-2.5 2.5H11l-4 3v-3H7.5A2.5 2.5 0 0 1 5 13z" />
@@ -41,6 +49,7 @@ function TabIcon({ name }) {
 const titles = {
   '/profile': 'navProfile',
   '/attendance': 'navAttendance',
+  '/leave': 'navLeave',
   '/groups': 'navGroups',
 }
 
@@ -68,7 +77,7 @@ export function Layout() {
           <Outlet />
         </main>
 
-        <nav className="tab-bar" aria-label={t('menu')}>
+        <nav className="tab-bar tabs-4" aria-label={t('menu')}>
           <NavLink to="/profile" className={({ isActive }) => `tab-item${isActive ? ' on' : ''}`}>
             <TabIcon name="profile" />
             <span>{t('tabProfile')}</span>
@@ -76,6 +85,10 @@ export function Layout() {
           <NavLink to="/attendance" className={({ isActive }) => `tab-item${isActive ? ' on' : ''}`}>
             <TabIcon name="attend" />
             <span>{t('tabAttend')}</span>
+          </NavLink>
+          <NavLink to="/leave" className={({ isActive }) => `tab-item${isActive ? ' on' : ''}`}>
+            <TabIcon name="leave" />
+            <span>{t('tabLeave')}</span>
           </NavLink>
           <NavLink to="/groups" className={({ isActive }) => `tab-item${isActive ? ' on' : ''}`}>
             <TabIcon name="chat" />
