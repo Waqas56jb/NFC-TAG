@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { ChatIconButton } from './ChatIconButton'
 import { useI18n } from '../i18n/I18nContext'
 import { ATTENDANCE_STATUSES, prettyDate, todayKey } from '../lib/school'
 
@@ -10,7 +11,7 @@ function defaultMarks(students) {
   return Object.fromEntries(students.map((s) => [s.id, 'present']))
 }
 
-export function AttendanceBoard({ students, sheets, gradeId, sectionId, onSave }) {
+export function AttendanceBoard({ students, sheets, gradeId, sectionId, onSave, onMessage }) {
   const { t, lang } = useI18n()
   const [date, setDate] = useState(todayKey())
   const [newDate, setNewDate] = useState(todayKey())
@@ -118,6 +119,7 @@ export function AttendanceBoard({ students, sheets, gradeId, sectionId, onSave }
                 <div className="person-cell">
                   {student.photo ? <img className="avatar" src={student.photo} alt="" /> : <div className="avatar placeholder">{student.name.slice(0, 1)}</div>}
                   <strong>{student.name}</strong>
+                  {onMessage ? <ChatIconButton label={t('message')} onClick={() => onMessage(student)} /> : null}
                 </div>
                 <div className="status-pills">
                   {ATTENDANCE_STATUSES.map((status) => (

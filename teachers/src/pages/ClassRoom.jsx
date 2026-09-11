@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Navigate, useLocation, useParams } from 'react-router-dom'
+import { ChatIconButton } from '../components/ChatIconButton'
 import { Crumbs } from '../components/Crumbs'
 import { StaffDmModal } from '../components/StaffDmModal'
 import { useTeacher } from '../context/TeacherContext'
@@ -231,11 +232,9 @@ export function ClassRoom() {
                         <td>{student.nic || '—'}</td>
                         <td>
                           <div className="row-actions">
+                            <ChatIconButton label={t('message')} onClick={() => setMessaging(student)} />
                             <button className="ghost" onClick={() => setViewing(student)}>
                               {t('view')}
-                            </button>
-                            <button className="ghost" onClick={() => setMessaging(student)}>
-                              {t('message')}
                             </button>
                           </div>
                         </td>
@@ -311,6 +310,7 @@ export function ClassRoom() {
                     <div className="person-cell">
                       <StudentFace student={student} />
                       <strong>{student.name}</strong>
+                      <ChatIconButton label={t('message')} onClick={() => setMessaging(student)} />
                     </div>
                     <div className="status-pills">
                       {ATTENDANCE_STATUSES.map((status) => (
@@ -362,9 +362,14 @@ export function ClassRoom() {
               <button className="ghost" onClick={() => setViewing(null)}>
                 {t('close')}
               </button>
-              <button className="primary" onClick={() => { setMessaging(viewing); setViewing(null) }}>
-                {t('message')}
-              </button>
+              <ChatIconButton
+                className="lg"
+                label={t('message')}
+                onClick={() => {
+                  setMessaging(viewing)
+                  setViewing(null)
+                }}
+              />
             </div>
           </div>
         </div>

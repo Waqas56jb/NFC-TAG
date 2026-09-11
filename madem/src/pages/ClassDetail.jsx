@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Navigate, useLocation, useParams } from 'react-router-dom'
 import { AttendanceBoard } from '../components/AttendanceBoard'
+import { ChatIconButton } from '../components/ChatIconButton'
 import { Crumbs } from '../components/Crumbs'
 import { Modal } from '../components/Modal'
 import { StaffDmModal } from '../components/StaffDmModal'
@@ -111,6 +112,7 @@ export function ClassDetail() {
           gradeId={gradeId}
           sectionId={sectionId}
           onSave={saveAttendance}
+          onMessage={setMessaging}
         />
       ) : (
       <>
@@ -161,11 +163,9 @@ export function ClassDetail() {
                   <td>{student.rollNo || '—'}</td>
                   <td>
                     <div className="row-actions">
+                      <ChatIconButton label={t('message')} onClick={() => setMessaging(student)} />
                       <button className="ghost" onClick={() => setViewing(student)}>
                         {t('view')}
-                      </button>
-                      <button className="ghost" onClick={() => setMessaging(student)}>
-                        {t('message')}
                       </button>
                       <button className="ghost" onClick={() => openEdit(student)}>
                         {t('edit')}
@@ -216,6 +216,14 @@ export function ClassDetail() {
         >
           <StudentView student={viewing} />
           <div className="modal-actions" style={{ paddingTop: 0 }}>
+            <ChatIconButton
+              className="lg"
+              label={t('message')}
+              onClick={() => {
+                setMessaging(viewing)
+                setViewing(null)
+              }}
+            />
             <button className="primary" type="button" onClick={() => openEdit(viewing)}>
               {t('editThisStudent')}
             </button>
