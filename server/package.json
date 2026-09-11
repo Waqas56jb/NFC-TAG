@@ -2,6 +2,9 @@
   "name": "nfc-tag-server",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "db:setup": "node scripts/setup-nfctag-db.mjs",
     "db:seed": "node scripts/seed-nfctag-db.mjs",
