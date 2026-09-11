@@ -22,20 +22,30 @@ export function Login() {
 
   return (
     <div className="login-page">
-      <section className="login-art">
+      <aside className="login-art" aria-hidden="true">
         <div>
-          <div className="rings" aria-hidden="true" />
+          <div className="rings" />
           <h2>{t('loginTitle')}</h2>
           <p>{t('loginLead')}</p>
         </div>
         <p>{t('loginFoot')}</p>
-      </section>
-      <section className="login-form-wrap">
+      </aside>
+
+      <main className="login-form-wrap">
+        <header className="login-mobile-head">
+          <div className="rings sm" aria-hidden="true" />
+          <div>
+            <p className="login-kicker">{t('brand')}</p>
+            <h1>{t('signIn')}</h1>
+          </div>
+          <LanguageToggle />
+        </header>
+
         <form className="form-card" onSubmit={onSubmit}>
-          <div className="login-lang">
+          <div className="login-lang login-lang-desktop">
             <LanguageToggle />
           </div>
-          <h3>{t('signIn')}</h3>
+          <h3 className="login-card-title">{t('signIn')}</h3>
           <p className="muted">{t('loginHint')}</p>
           <Field label={t('email')}>
             <input
@@ -66,11 +76,11 @@ export function Login() {
               </button>
             </div>
           ) : null}
-          <button className="primary" type="submit" style={{ width: '100%', marginTop: 18 }}>
+          <button className="primary login-submit" type="submit">
             {t('enterDesk')}
           </button>
         </form>
-      </section>
+      </main>
     </div>
   )
 }
