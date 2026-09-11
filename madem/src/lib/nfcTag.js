@@ -1,4 +1,4 @@
-/** Small AMAN shirt tag — white bg, clear Arabic أمان + OCR-readable unique code (no QR). */
+/** Compact AMAN tag with small QR = unique child profile URL (camera opens browser). */
 
 export function studentTagCode(student) {
   return String(student?.tagCode || student?.id || '')
@@ -33,52 +33,111 @@ function safeFileName(name) {
     .slice(0, 48) || 'student'
 }
 
+function truncate(text, max) {
+  const s = String(text || '')
+  return s.length > max ? `${s.slice(0, max - 1)}…` : s
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  const radius = Math.min(r, w / 2, h / 2)
+  ctx.beginPath()
+  ctx.moveTo(x + radius, y)
+  ctx.arcTo(x + w, y, x + w, y + h, radius)
+  ctx.arcTo(x + w, y + h, x, y + h, radius)
+  ctx.arcTo(x + w, y + h, x, y, radius)
+  ctx.arcTo(x, y, x + w, y, radius)
+  ctx.closePath()
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('Could not load QR. Check internet and try again.'))
+    img.src = src
+  })
+}
+
 /**
- * High-contrast white tag for print + camera OCR (no QR).
- * Camera apps detect the unique CODE under أمان via the in-app /scan page.
+ * Compact printable tag: أمان + small QR.
+ * Each student's QR encodes their unique /c/{code} profile URL.
+ * Phone camera → browser opens that child's public profile.
  */
-export async function downloadNfcTag(student) {
+export async function downloadNfcTag(student, { schoolName = 'NFC Tag school' } = {}) {
   const code = studentTagCode(student)
   const url = studentPublicUrl(student)
   if (!code || !url) throw new Error('Student tag code missing.')
 
-  const W = 1000
-  const H = 560
+  // Small QR (still reliable for phone cameras)
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=6&ecc=M&data=${encodeURIComponent(url)}`
+  const qr = await loadImage(qrSrc)
+
+  const W = 640
+  const H = 860
   const canvas = document.createElement('canvas')
   canvas.width = W
   canvas.height = H
   const ctx = canvas.getContext('2d')
 
-  // Pure white — max contrast for camera
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, W, H)
+  ctx.strokeStyle = '#111111'
+  ctx.lineWidth = 4
+  ctx.strokeRect(2, 2, W - 4, H - 4)
 
-  // Thin black frame so edges are clear when photographed
-  ctx.strokeStyle = '#000000'
-  ctx.lineWidth = 8
-  ctx.strokeRect(4, 4, W - 8, H - 8)
+  // Header
+  ctx.fillStyle = '#0b2a4a'
+  ctx.fillRect(0, 0, W, 150)
 
-  // Straight connected Arabic — seedha, high contrast
-  ctx.fillStyle = '#000000'
+  ctx.fillStyle = '#ffffff'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.direction = 'rtl'
-  ctx.font = '700 200px "Segoe UI", Tahoma, "Traditional Arabic", "Arial", sans-serif'
-  ctx.fillText('أمان', W / 2, 175)
+  ctx.font = '700 56px "Segoe UI", Tahoma, "Traditional Arabic", Arial, sans-serif'
+  ctx.fillText('أمان', W / 2, 58)
 
   ctx.direction = 'ltr'
-  ctx.font = '800 36px Arial, Helvetica, sans-serif'
-  ctx.fillStyle = '#000000'
-  ctx.fillText('AMAN', W / 2, 290)
+  ctx.font = '800 26px Arial, Helvetica, sans-serif'
+  ctx.fillText('AMAN', W / 2, 112)
 
-  // Unique code — large, OCR-friendly (camera detects THIS, not a QR)
-  ctx.font = '800 64px "Courier New", Consolas, monospace'
-  ctx.fillStyle = '#000000'
-  ctx.fillText(code, W / 2, 400)
+  // Student identity
+  ctx.fillStyle = '#111111'
+  ctx.font = '700 32px Georgia, "Times New Roman", serif'
+  ctx.fillText(truncate(student.name || 'Student', 24), W / 2, 200)
 
-  ctx.font = '600 22px Arial, Helvetica, sans-serif'
-  ctx.fillStyle = '#222222'
-  ctx.fillText('Open AMAN Scan · point camera at this code', W / 2, 480)
+  ctx.fillStyle = '#555555'
+  ctx.font = '600 18px Arial, Helvetica, sans-serif'
+  ctx.fillText(truncate(schoolName, 32), W / 2, 240)
+
+  // Small QR — unique profile link
+  const qrSize = 260
+  const qrX = (W - qrSize) / 2
+  const qrY = 280
+  roundRect(ctx, qrX - 14, qrY - 14, qrSize + 28, qrSize + 28, 16)
+  ctx.fillStyle = '#f5f5f5'
+  ctx.fill()
+  ctx.drawImage(qr, qrX, qrY, qrSize, qrSize)
+
+  ctx.fillStyle = '#0b2a4a'
+  ctx.font = '700 20px Arial, Helvetica, sans-serif'
+  ctx.fillText('Scan with phone camera', W / 2, 600)
+
+  ctx.fillStyle = '#555555'
+  ctx.font = '500 16px Arial, Helvetica, sans-serif'
+  ctx.fillText('Opens this child’s safety profile', W / 2, 632)
+
+  ctx.fillStyle = '#888888'
+  ctx.font = '600 15px "Courier New", Consolas, monospace'
+  ctx.fillText(code.slice(0, 12), W / 2, 680)
+
+  ctx.fillStyle = '#b42318'
+  ctx.font = '600 16px Arial, Helvetica, sans-serif'
+  ctx.fillText('Together for a Safer Tomorrow', W / 2, 740)
+
+  ctx.fillStyle = '#999999'
+  ctx.font = '500 13px Arial, Helvetica, sans-serif'
+  ctx.fillText('Unique link inside QR · each student different', W / 2, 800)
 
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
   if (!blob) throw new Error('Could not create tag image.')
@@ -108,7 +167,6 @@ export async function copyStudentTagUrl(student) {
   return { ok: true, url }
 }
 
-/** Extract a tag code from OCR / TextDetector output. */
 export function extractTagCodeFromText(raw) {
   const text = String(raw || '').toUpperCase().replace(/[^A-Z0-9\s]/g, ' ')
   const tokens = text.split(/\s+/).filter(Boolean)

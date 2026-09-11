@@ -131,7 +131,7 @@ export const en = {
   editThisStudent: 'Edit this student',
   downloadNfcTag: 'Download NFC tag',
   downloadingNfc: 'Preparing tag…',
-  toastNfcDownloaded: 'White أمان tag downloaded (no QR). Unique code is printed under the word — open /scan to detect with camera.',
+  toastNfcDownloaded: 'Student tag downloaded. Small QR has this child’s unique profile link — phone camera opens it in the browser.',
   errNfcDownload: 'Could not download NFC tag. Try again.',
   crumbsClasses: 'Classes',
   audit: 'Audit',

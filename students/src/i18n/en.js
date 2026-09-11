@@ -157,7 +157,7 @@ export const en = {
   noAnnouncements: 'No announcements yet.',
   downloadNfcTag: 'Download NFC tag',
   downloadingNfc: 'Preparing tag…',
-  toastNfcDownloaded: 'White أمان tag downloaded. Use AMAN Scan camera page to detect the code (no QR).',
+  toastNfcDownloaded: 'Your tag downloaded. Small QR opens your unique profile in the browser when scanned.',
   errNfcDownload: 'Could not download NFC tag. Try again.',
   publicChildMissing: 'Child not found',
   errChildMissing: 'This NFC tag link is invalid or the record was removed.',

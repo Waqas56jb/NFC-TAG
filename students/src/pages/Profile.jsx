@@ -57,7 +57,7 @@ export function Profile() {
     setTagBusy(true)
     setTagMsg('')
     try {
-      await downloadNfcTag(student)
+      await downloadNfcTag(student, { schoolName: t('school') })
       setTagMsg(t('toastNfcDownloaded'))
     } catch (err) {
       setTagMsg(err.message || t('errNfcDownload'))
