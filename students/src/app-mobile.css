@@ -270,13 +270,19 @@ body {
   z-index: 25;
 }
 
-.tab-bar.tabs-4 {
+.tab-bar.tabs-4,
+.tab-bar.tabs-5 {
   grid-template-columns: repeat(4, 1fr);
   gap: 2px;
   padding-inline: 6px;
 }
 
-.tab-bar.tabs-4 .tab-item {
+.tab-bar.tabs-5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.tab-bar.tabs-4 .tab-item,
+.tab-bar.tabs-5 .tab-item {
   font-size: 0.62rem;
   min-height: 52px;
   border-radius: 14px;
@@ -1048,6 +1054,16 @@ body {
   background: #efe6d4;
   border-top: 1px solid rgba(180, 160, 120, 0.35);
   position: relative;
+  flex-shrink: 0;
+}
+
+.phone-app .wa-view-only {
+  margin: 0;
+  padding: 12px 14px max(12px, env(safe-area-inset-bottom));
+  background: #efe6d4;
+  border-top: 1px solid rgba(180, 160, 120, 0.35);
+  font-size: 0.84rem;
+  text-align: center;
   flex-shrink: 0;
 }
 
@@ -1862,10 +1878,11 @@ html[dir="rtl"] .kpi-days {
 
 @media (max-width: 360px) {
   .attend-kpi { grid-template-columns: 1fr 1fr; }
-  .tab-bar.tabs-4 .tab-item {
-    font-size: 0.58rem;
+  .tab-bar.tabs-4 .tab-item,
+  .tab-bar.tabs-5 .tab-item {
+    font-size: 0.54rem;
     min-height: 50px;
-    padding-inline: 2px;
+    padding-inline: 1px;
   }
 }
 
@@ -2313,7 +2330,8 @@ html[dir="rtl"] .pf-link {
 }
 
 .phone-app:has(.dm-shell.room-open) .groups-switch,
-.phone-app:has(.wa-shell.room-open) .groups-switch {
+.phone-app:has(.wa-shell.room-open) .groups-switch,
+.phone-app:has(.dm-shell.room-open) .teacher-chat-start {
   display: none;
 }
 
@@ -2340,6 +2358,42 @@ html[dir="rtl"] .pf-link {
   background: linear-gradient(145deg, #1a3328 0%, #2f6f4e 55%, #3d8a62 100%);
   color: #f7faf7;
   box-shadow: 0 16px 36px rgba(20, 52, 36, 0.28);
+}
+
+.leave-hero-pass {
+  flex-wrap: wrap;
+}
+
+.leave-pass-mark {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 72px;
+  padding: 10px 8px;
+  border-radius: 14px;
+  background: #fff;
+  color: #1c2a22;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.leave-pass-aman {
+  font-family: Fraunces, Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #2f6f4e;
+}
+
+.leave-pass-mark code {
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+  color: #5d6b63;
+  word-break: break-all;
+  text-align: center;
 }
 
 .leave-hero-bg {
@@ -2438,6 +2492,17 @@ html[dir="rtl"] .pf-link {
   color: #1c2a22;
 }
 
+.leave-type-count {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b756f;
+}
+
+.leave-type-card.on .leave-type-count {
+  color: #2f6f4e;
+}
+
 .leave-type-card:hover {
   transform: translateY(-1px);
 }
@@ -2446,6 +2511,41 @@ html[dir="rtl"] .pf-link {
   border-color: #2f6f4e;
   box-shadow: 0 0 0 2px rgba(47, 111, 78, 0.18);
   background: #eef6f0;
+}
+
+.leave-focus-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 4px 0 10px;
+}
+
+.leave-focus-head h4 {
+  margin: 0;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 0.98rem;
+}
+
+.leave-school-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid #eadfca;
+  background: #faf7f1;
+}
+
+.leave-school-card strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.leave-school-card p {
+  margin: 0;
+  font-size: 0.78rem;
 }
 
 .leave-type-badge {
@@ -3020,4 +3120,83 @@ html {
   .pf-signout {
     min-height: 44px;
   }
+}
+
+.teacher-chat-start {
+  margin: 0 0 10px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(218, 204, 176, 0.55);
+  background: rgba(255, 252, 247, 0.92);
+}
+
+.teacher-chat-start p {
+  margin: 0 0 8px;
+}
+
+.teacher-chat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.teacher-chat-list button {
+  justify-content: flex-start;
+  text-align: start;
+}
+
+.hw-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hw-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hw-card {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(218, 204, 176, 0.55);
+  background: rgba(255, 252, 247, 0.92);
+}
+
+.hw-card-top {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.hw-card p {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+}
+
+.hw-card small {
+  color: #6b756f;
+}
+
+.hw-due {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #9a5c28;
+}
+
+.hw-media {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.hw-file {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
 }

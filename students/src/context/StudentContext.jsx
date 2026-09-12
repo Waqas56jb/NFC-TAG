@@ -40,6 +40,8 @@ export function StudentProvider({ children }) {
   const [attendance, setAttendance] = useState([])
   const [dmThreads, setDmThreads] = useState([])
   const [leaves, setLeaves] = useState([])
+  const [homework, setHomework] = useState([])
+  const [classTeachers, setClassTeachers] = useState([])
   const [toast, setToast] = useState(null)
   const [actionBusy, setActionBusy] = useState(0)
   const [ready, setReady] = useState(false)
@@ -68,7 +70,11 @@ export function StudentProvider({ children }) {
         jobs.push(hub.fetchStudent(nextStudent.id))
         jobs.push(hub.listMyAttendance(nextStudent.gradeId, nextStudent.sectionId, nextStudent.id))
       }
-      const [g, a, profile, mine] = await Promise.all(jobs)
+      const results = await Promise.allSettled(jobs)
+      const g = results[0].status === 'fulfilled' ? results[0].value : null
+      const a = results[1].status === 'fulfilled' ? results[1].value : null
+      const profile = results[2]?.status === 'fulfilled' ? results[2].value : null
+      const mine = results[3]?.status === 'fulfilled' ? results[3].value : null
       if (g?.ok) setGroups(g.groups)
       if (a?.ok) setAnnouncements(a.announcements)
       if (profile?.ok) {
@@ -82,14 +88,24 @@ export function StudentProvider({ children }) {
         if (dms.ok) setDmThreads(dms.threads)
         const lv = await hub.listStudentLeaves({ studentId: nextStudent.id })
         if (lv.ok) setLeaves(lv.leaves)
+        const hw = await hub.listHomework({
+          gradeId: nextStudent.gradeId,
+          sectionId: nextStudent.sectionId,
+        })
+        if (hw.ok) setHomework(hw.homework)
+        const staff = await hub.listClassTeachers(nextStudent.gradeId, nextStudent.sectionId)
+        if (staff.ok) setClassTeachers(staff.teachers)
       } else {
         setDmThreads([])
         setLeaves([])
+        setHomework([])
+        setClassTeachers([])
       }
       setBootError('')
       return school
     } catch (err) {
-      setBootError(err.message || t('errBoot'))
+      const msg = err?.message || t('errBoot')
+      setBootError(msg)
       return { grades: [] }
     }
   }
@@ -135,6 +151,8 @@ export function StudentProvider({ children }) {
     setAttendance([])
     setDmThreads([])
     setLeaves([])
+    setHomework([])
+    setClassTeachers([])
   }
 
   return (
@@ -147,6 +165,8 @@ export function StudentProvider({ children }) {
         announcements,
         dmThreads,
         leaves,
+        homework,
+        classTeachers,
         allowedCards,
         toast,
         actionBusy,
@@ -177,18 +197,13 @@ export function StudentProvider({ children }) {
             return result
           })
         },
-        async postGroupMessage(payload) {
-          if (!student) return { ok: false, error: t('errSignIn') }
-          return withBusy(async () => {
-            const result = await hub.postMessage(payload, student)
-            if (!result.ok) notify(tx(result.error), 'bad')
-            return result
-          })
+        async postGroupMessage() {
+          return { ok: false, error: t('groupViewOnly') }
         },
         async postDmMessage(payload) {
           if (!student) return { ok: false, error: t('errSignIn') }
           return withBusy(async () => {
-            const result = await hub.postDmMessage(payload, student)
+            const result = await hub.postDmMessage(payload, { ...student, role: 'student' })
             if (!result.ok) notify(tx(result.error), 'bad')
             else {
               const dms = await hub.listDmThreadsForStudent(student.id)
@@ -196,6 +211,34 @@ export function StudentProvider({ children }) {
             }
             return result
           })
+        },
+        async startTeacherChat(teacherContact) {
+          if (!student || !teacherContact?.id) return { ok: false, error: t('errSignIn') }
+          return withBusy(async () => {
+            const result = await hub.openDmThread({
+              staffId: teacherContact.id,
+              staffRole: 'teacher',
+              staffName: teacherContact.name,
+              studentId: student.id,
+              studentName: student.name,
+            })
+            if (!result.ok) {
+              notify(tx(result.error), 'bad')
+              return result
+            }
+            const dms = await hub.listDmThreadsForStudent(student.id)
+            if (dms.ok) setDmThreads(dms.threads)
+            return result
+          })
+        },
+        async refreshHomework() {
+          if (!student?.gradeId || !student?.sectionId) return { ok: true, homework: [] }
+          const hw = await hub.listHomework({
+            gradeId: student.gradeId,
+            sectionId: student.sectionId,
+          })
+          if (hw.ok) setHomework(hw.homework)
+          return hw
         },
         async refreshDmThreads() {
           if (!student?.id) return { ok: true, threads: [] }

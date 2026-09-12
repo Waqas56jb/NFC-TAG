@@ -179,6 +179,30 @@ export function TeacherProvider({ children }) {
           return result
         })
       },
+      async markStudentReturned(id) {
+        if (!teacher) return { ok: false, error: t('errSignIn') }
+        return withBusy(async () => {
+          const result = await hub.markStudentReturned(id, { ...teacher, role: 'teacher' })
+          if (!result.ok) { notify(tx(result.error), 'bad'); return result }
+          await refreshDesk(teacher.id)
+          notify(t('toastStudentLeaveReturned'))
+          return result
+        })
+      },
+      async scanStudentLeave(raw, leaveType) {
+        if (!teacher) return { ok: false, error: t('errSignIn') }
+        return withBusy(async () => {
+          const result = await hub.recordNfcLeaveScan(raw, { leaveType }, { ...teacher, role: 'teacher' })
+          if (!result.ok) { notify(tx(result.error), 'bad'); return result }
+          await refreshDesk(teacher.id)
+          notify(
+            result.action === 'returned'
+              ? t('nfcLeaveReturnedToast', { name: result.student?.name || '' })
+              : t('nfcLeaveOutToast', { name: result.student?.name || '' }),
+          )
+          return result
+        })
+      },
       async createGroup(payload) {
         if (!teacher) return { ok: false, error: t('errSignIn') }
         return withBusy(async () => {
@@ -214,6 +238,25 @@ export function TeacherProvider({ children }) {
         return withBusy(async () => {
           const result = await hub.postDmMessage(payload, { ...teacher, role: 'teacher' })
           if (!result.ok) notify(tx(result.error), 'bad')
+          return result
+        })
+      },
+      listHomework: hub.listHomework,
+      async createHomework(payload) {
+        if (!teacher) return { ok: false, error: t('errSignIn') }
+        return withBusy(async () => {
+          const result = await hub.createHomework(payload, { ...teacher, role: 'teacher' })
+          if (!result.ok) notify(tx(result.error), 'bad')
+          else notify(t('toastHomeworkPosted'))
+          return result
+        })
+      },
+      async deleteHomework(id) {
+        if (!teacher) return { ok: false, error: t('errSignIn') }
+        return withBusy(async () => {
+          const result = await hub.deleteHomework(id, { ...teacher, role: 'teacher' })
+          if (!result.ok) notify(tx(result.error), 'bad')
+          else notify(t('toastHomeworkDeleted'))
           return result
         })
       },

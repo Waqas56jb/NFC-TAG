@@ -42,7 +42,7 @@ function Section({ title, children, icon }) {
 }
 
 export function Profile() {
-  const { student, grades, logout } = useStudent()
+  const { student, grades, leaves, logout } = useStudent()
   const { t, lang } = useI18n()
   const [tagBusy, setTagBusy] = useState(false)
   const [tagMsg, setTagMsg] = useState('')
@@ -52,6 +52,15 @@ export function Profile() {
   const dob = student.dob ? prettyDate(student.dob, lang) || student.dob : ''
   const portrait = displayPhoto(student.photo, student.name, student.id || student.email)
   const initial = (student.name || '?').trim().charAt(0).toUpperCase()
+  const recentLeaves = (leaves || []).slice(0, 5)
+
+  function formatWhen(iso) {
+    if (!iso) return '—'
+    return new Date(iso).toLocaleString(lang === 'ar' ? 'ar' : 'en', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    })
+  }
 
   async function handleCopyNfcLink() {
     setTagBusy(true)
@@ -139,6 +148,52 @@ export function Profile() {
         <Row label={t('address')} value={student.address} />
         <Row label={t('notes')} value={student.notes} />
       </Section>
+
+      <section className="pf-sheet">
+        <div className="pf-sheet-head">
+          <span className="pf-ico school" aria-hidden="true" />
+          <h3>{t('profileLeaveTitle')}</h3>
+        </div>
+        <div className="pf-sheet-body">
+          {recentLeaves.length === 0 ? (
+            <div className="pf-row">
+              <span>{t('profileLeaveEmpty')}</span>
+              <strong className="empty">—</strong>
+            </div>
+          ) : (
+            recentLeaves.map((item) => {
+              const isSchoolPending = item.leaveType === 'leave_school' && item.status === 'pending'
+              const isOut =
+                !isSchoolPending &&
+                item.status !== 'returned' &&
+                item.status !== 'rejected' &&
+                (item.status === 'approved' || item.status === 'out' || item.status === 'pending' || item.leftAt)
+              return (
+                <div className="pf-row" key={item.id}>
+                  <span>
+                    {t(`leaveType_${item.leaveType}`)}
+                    <br />
+                    <small className="muted">
+                      {isSchoolPending
+                        ? formatWhen(item.createdAt)
+                        : `${t('leftAt')} ${formatWhen(item.leftAt || item.createdAt)}${
+                            item.returnedAt ? ` · ${t('returnedAt')} ${formatWhen(item.returnedAt)}` : ''
+                          }`}
+                    </small>
+                  </span>
+                  <strong>
+                    {isSchoolPending
+                      ? t('sleave_pending')
+                      : isOut
+                        ? t('sleave_out')
+                        : t(`sleave_${item.status === 'approved' ? 'returned' : item.status}`)}
+                  </strong>
+                </div>
+              )
+            })
+          )}
+        </div>
+      </section>
 
       <section className="pf-sheet pf-account">
         <div className="pf-sheet-head">

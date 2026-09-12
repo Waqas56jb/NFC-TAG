@@ -2,8 +2,17 @@ import { useEffect, useMemo, useState } from 'react'
 import { useStudent } from '../context/StudentContext'
 import { useI18n } from '../i18n/I18nContext'
 import { displayPhoto } from '../lib/avatar'
-import { LEAVE_TYPES } from '../lib/studentLeave'
+import { MOVEMENT_TYPES } from '../lib/studentLeave'
+import { studentTagCode } from '../lib/nfcTag'
 import { classLabel } from '../lib/school'
+
+function formatWhen(iso, lang) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleString(lang === 'ar' ? 'ar' : 'en', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  })
+}
 
 function TypeIcon({ name }) {
   const props = {
@@ -67,11 +76,11 @@ function TypeIcon({ name }) {
 export function Leave() {
   const { student, grades, leaves, requestLeave, refreshLeaves } = useStudent()
   const { t, lang, tx } = useI18n()
-  const [type, setType] = useState('')
+  const [focusType, setFocusType] = useState('restroom')
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [done, setDone] = useState(null)
+  const [done, setDone] = useState(false)
 
   useEffect(() => {
     refreshLeaves?.()
@@ -93,146 +102,203 @@ export function Leave() {
     return cards.find((c) => c.gradeId === student?.gradeId && c.sectionId === student?.sectionId) || {}
   }, [grades, student])
 
+  const movementLeaves = useMemo(
+    () => (leaves || []).filter((item) => item.leaveType && item.leaveType !== 'leave_school'),
+    [leaves],
+  )
+  const schoolRequests = useMemo(
+    () => (leaves || []).filter((item) => item.leaveType === 'leave_school'),
+    [leaves],
+  )
+  const focused = useMemo(
+    () => movementLeaves.filter((item) => item.leaveType === focusType),
+    [movementLeaves, focusType],
+  )
+  const counts = useMemo(() => {
+    const next = {}
+    for (const type of MOVEMENT_TYPES) next[type.id] = 0
+    for (const item of movementLeaves) {
+      if (next[item.leaveType] != null) next[item.leaveType] += 1
+    }
+    return next
+  }, [movementLeaves])
+
   if (!student) return null
 
   const portrait = displayPhoto(student.photo, student.name, student.id || student.email)
+  const tag = studentTagCode(student)
 
-  async function submit(e) {
+  async function submitSchoolLeave(e) {
     e.preventDefault()
-    if (!type) {
-      setError(t('errLeaveType'))
-      return
-    }
+    if (busy) return
     setBusy(true)
     setError('')
-    const result = await requestLeave({
-      leaveType: type,
-      note,
-      gradeName: classMeta.gradeName || '',
-      sectionName: classMeta.sectionName || '',
-    })
-    setBusy(false)
-    if (!result?.ok) {
-      setError(tx(result?.error || t('errRequest')))
-      return
+    try {
+      const result = await requestLeave({
+        leaveType: 'leave_school',
+        note,
+        gradeName: classMeta.gradeName,
+        sectionName: classMeta.sectionName,
+      })
+      if (!result?.ok) {
+        setError(tx(result?.error || t('errRequest')))
+        return
+      }
+      setNote('')
+      setDone(true)
+    } finally {
+      setBusy(false)
     }
-    setDone({ type, at: new Date().toISOString() })
-    setType('')
-    setNote('')
-  }
-
-  if (done) {
-    return (
-      <section className="app-screen leave-screen">
-        <article className="leave-success">
-          <div className="leave-success-check" aria-hidden="true">
-            ✓
-          </div>
-          <p className="leave-kicker">{t('leaveSentKicker')}</p>
-          <h2>{t('leaveSentTitle')}</h2>
-          <p className="leave-success-meta">
-            {t(`leaveType_${done.type}`)}
-            <span>·</span>
-            {new Date(done.at).toLocaleString(lang === 'ar' ? 'ar' : 'en', {
-              hour: 'numeric',
-              minute: '2-digit',
-              weekday: 'short',
-              day: 'numeric',
-              month: 'short',
-            })}
-          </p>
-          <p className="muted">{t('leaveSentHint')}</p>
-          <button type="button" className="primary leave-ok" onClick={() => setDone(null)}>
-            {t('leaveOk')}
-          </button>
-        </article>
-      </section>
-    )
   }
 
   return (
     <section className="app-screen leave-screen">
-      <article className="leave-hero">
+      <article className="leave-hero leave-hero-pass">
         <div className="leave-hero-bg" aria-hidden="true" />
-        <img className="leave-avatar" src={portrait} alt="" loading="lazy" referrerPolicy="no-referrer" />
+        <div className="leave-pass-mark">
+          <span className="leave-pass-aman">أمان</span>
+          <code>{tag || '—'}</code>
+        </div>
         <div className="leave-hero-text">
           <p className="leave-kicker">{t('leavePassBrand')}</p>
           <h2>{student.name}</h2>
           <p>{klass || t('studentRole')}</p>
         </div>
+        <img className="leave-avatar" src={portrait} alt="" />
       </article>
 
-      <form className="leave-form" onSubmit={submit}>
+      <section className="leave-history">
         <div className="leave-section-head">
-          <h3>{t('leaveChooseType')}</h3>
-          <p>{t('leaveChooseHint')}</p>
+          <h3>{t('movementLogTitle')}</h3>
+          <p>{t('movementLogHint')}</p>
         </div>
 
         <div className="leave-type-grid">
-          {LEAVE_TYPES.map((item) => (
+          {MOVEMENT_TYPES.map((item) => (
             <button
               key={item.id}
               type="button"
-              className={`leave-type-card ${type === item.id ? 'on' : ''}`}
-              onClick={() => setType(item.id)}
+              className={`leave-type-card${focusType === item.id ? ' on' : ''}`}
+              onClick={() => setFocusType(item.id)}
             >
               <span className={`leave-type-badge ${item.icon}`}>
                 <TypeIcon name={item.icon} />
               </span>
               <strong>{t(`leaveType_${item.id}`)}</strong>
+              <em className="leave-type-count">
+                {t('movementCount', { count: counts[item.id] || 0 })}
+              </em>
             </button>
           ))}
         </div>
 
-        <label className="leave-note">
-          <span>{t('leaveNote')}</span>
-          <textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder={t('leaveNoteHint')}
-            rows={3}
-          />
-        </label>
-
-        {error ? <div className="error">{error}</div> : null}
-
-        <button className={`primary leave-submit${busy ? ' is-loading' : ''}`} type="submit" disabled={busy || !type}>
-          {busy ? <span className="btn-spinner" aria-hidden="true" /> : null}
-          <span>{busy ? t('working') : t('sendLeaveRequest')}</span>
-        </button>
-      </form>
-
-      <section className="leave-history">
-        <div className="leave-section-head">
-          <h3>{t('leaveHistory')}</h3>
-          <p>{t('leaveHistoryHint')}</p>
+        <div className="leave-focus-head">
+          <h4>{t(`leaveType_${focusType}`)}</h4>
+          <span className="muted">{t('movementCount', { count: focused.length })}</span>
         </div>
-        {(leaves || []).length === 0 ? (
-          <div className="empty soft">{t('noStudentLeaves')}</div>
+        {focused.length === 0 ? (
+          <div className="empty soft">{t('movementEmpty')}</div>
         ) : (
-          <ul className="leave-list">
-            {leaves.map((item) => (
-              <li key={item.id} className={`leave-item status-${item.status}`}>
-                <div>
-                  <strong>{t(`leaveType_${item.leaveType}`)}</strong>
-                  <p>
-                    {new Date(item.createdAt).toLocaleString(lang === 'ar' ? 'ar' : 'en', {
-                      dateStyle: 'medium',
-                      timeStyle: 'short',
-                    })}
-                  </p>
-                  {item.note ? <small>{item.note}</small> : null}
-                  {item.reviewedByName ? (
-                    <small className="leave-reviewer">
-                      {t('leaveReviewedBy', { name: item.reviewedByName })}
-                    </small>
-                  ) : null}
-                </div>
-                <span className={`leave-status ${item.status}`}>{t(`sleave_${item.status}`)}</span>
-              </li>
-            ))}
-          </ul>
+          <div className="leave-list">
+            {focused.map((item) => {
+              const isOut =
+                item.status !== 'returned' &&
+                item.status !== 'rejected' &&
+                (item.status === 'approved' || item.status === 'out' || item.status === 'pending' || item.leftAt)
+              return (
+                <article key={item.id} className="leave-item">
+                  <div>
+                    <strong>
+                      {t('leftAt')}: {formatWhen(item.leftAt || item.createdAt, lang)}
+                    </strong>
+                    <p>
+                      {t('returnedAt')}: {formatWhen(item.returnedAt, lang)}
+                    </p>
+                    {item.reviewedByName ? (
+                      <small>{t('leaveRecordedBy', { name: item.reviewedByName })}</small>
+                    ) : null}
+                  </div>
+                  <span className={`leave-status ${isOut ? 'pending' : 'returned'}`}>
+                    {isOut ? t('sleave_out') : t('sleave_returned')}
+                  </span>
+                </article>
+              )
+            })}
+          </div>
         )}
+      </section>
+
+      <section className="leave-form">
+        <div className="leave-section-head">
+          <h3>{t('schoolLeaveTitle')}</h3>
+          <p>{t('schoolLeaveHint')}</p>
+        </div>
+
+        {done ? (
+          <div className="leave-success">
+            <div className="leave-success-check" aria-hidden="true" />
+            <h2>{t('schoolLeaveSentTitle')}</h2>
+            <p className="muted">{t('schoolLeaveSentHint')}</p>
+            <button type="button" className="leave-ok primary" onClick={() => setDone(false)}>
+              {t('leaveOk')}
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={submitSchoolLeave}>
+            <div className="leave-school-card">
+              <span className="leave-type-badge exit">
+                <TypeIcon name="exit" />
+              </span>
+              <div>
+                <strong>{t('leaveType_leave_school')}</strong>
+                <p className="muted">{t('schoolLeaveOnlyRequest')}</p>
+              </div>
+            </div>
+            <label className="leave-note">
+              {t('leaveNote')}
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                rows={3}
+                placeholder={t('leaveNoteHint')}
+                disabled={busy}
+              />
+            </label>
+            {error ? <div className="error">{error}</div> : null}
+            <button className={`primary leave-submit${busy ? ' is-loading' : ''}`} type="submit" disabled={busy}>
+              {busy ? <span className="btn-spinner" aria-hidden="true" /> : null}
+              <span>{busy ? t('sending') : t('sendSchoolLeave')}</span>
+            </button>
+          </form>
+        )}
+
+        {schoolRequests.length > 0 ? (
+          <div className="leave-list" style={{ marginTop: 14 }}>
+            <h4 className="leave-focus-head" style={{ marginBottom: 8 }}>
+              {t('schoolLeaveHistory')}
+            </h4>
+            {schoolRequests.map((item) => (
+              <article key={item.id} className="leave-item">
+                <div>
+                  <strong>{t('leaveType_leave_school')}</strong>
+                  <p>{formatWhen(item.createdAt, lang)}</p>
+                  {item.note ? <p>{item.note}</p> : null}
+                </div>
+                <span
+                  className={`leave-status ${
+                    item.status === 'approved' || item.status === 'returned'
+                      ? 'approved'
+                      : item.status === 'rejected'
+                        ? 'rejected'
+                        : 'pending'
+                  }`}
+                >
+                  {t(`sleave_${item.status === 'approved' && !item.returnedAt ? 'approved' : item.status}`)}
+                </span>
+              </article>
+            ))}
+          </div>
+        ) : null}
       </section>
     </section>
   )

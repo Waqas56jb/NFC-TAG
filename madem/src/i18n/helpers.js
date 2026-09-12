@@ -1,5 +1,7 @@
 export const ERROR_KEYS = {
   'Email or password is incorrect.': 'errBadLogin',
+  'This sub-user is blocked. Ask Principal to restore access.': 'errSubBlocked',
+  'This teacher login is blocked. Ask Principal to restore it.': 'errTeacherBlocked',
   'This sub-user is blocked. Ask Madam to restore access.': 'errSubBlocked',
   'This teacher login is blocked. Ask Madam to restore it.': 'errTeacherBlocked',
   'This email is already in use.': 'errEmailTaken',
@@ -14,6 +16,7 @@ export const ERROR_KEYS = {
   'Photo must be under 5MB.': 'errPhotoSize',
   'Could not read that photo.': 'errPhotoRead',
   'Current password is incorrect.': 'errBadPassword',
+  'Only Principal can edit this account.': 'errOnlyMadam',
   'Only Madam can edit this account.': 'errOnlyMadam',
   'Sign in first.': 'errSignIn',
   'Student not found.': 'errStudentMissing',
@@ -48,7 +51,7 @@ function formatDetail(detail, t) {
   if (subLogin) return t('detailCreatedSub', { email: subLogin[1] })
   if (d === 'Deleted teacher credentials') return t('detailDeletedTeacher')
   if (d === 'Deleted sub-user credentials') return t('detailDeletedSub')
-  if (d === 'Updated Madam account details') return t('detailUpdatedMadam')
+  if (d === 'Updated Principal account details' || d === 'Updated Madam account details') return t('detailUpdatedMadam')
   if (d === 'Deleted class card') return t('detailDeletedClass')
   if (d === 'Updated student details') return t('detailUpdatedStudent')
   if (d === 'Deleted student record') return t('detailDeletedStudent')

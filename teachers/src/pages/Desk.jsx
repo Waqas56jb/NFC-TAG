@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { StudentLeavesPanel } from '../components/StudentLeavesPanel'
+import { NfcLeaveScan, StudentLeavesPanel } from '../components/StudentLeavesPanel'
 import { useTeacher } from '../context/TeacherContext'
 import { useI18n } from '../i18n/I18nContext'
 import { prettyDate, prettyTime, todayKey } from '../lib/school'
@@ -14,7 +14,7 @@ function hoursBetween(start, end) {
 }
 
 export function Desk() {
-  const { teacher, classes, teacherDays, teacherLeaves, studentLeaves, checkIn, checkOut, requestLeave, reviewStudentLeave } = useTeacher()
+  const { teacher, classes, teacherDays, teacherLeaves, studentLeaves, checkIn, checkOut, requestLeave, scanStudentLeave, markStudentReturned, reviewStudentLeave } = useTeacher()
   const { t, lang } = useI18n()
   const [form, setForm] = useState({ startDate: todayKey(), endDate: todayKey(), reason: '' })
   const [busy, setBusy] = useState('')
@@ -109,7 +109,14 @@ export function Desk() {
           <h3>{t('studentPassTitle')}</h3>
           <p className="muted">{t('studentPassHint')}</p>
         </div>
-        <StudentLeavesPanel leaves={classPasses} onReview={reviewStudentLeave} t={t} lang={lang} />
+        <NfcLeaveScan onScan={scanStudentLeave} t={t} />
+        <StudentLeavesPanel
+          leaves={classPasses}
+          onReturn={markStudentReturned}
+          onReview={reviewStudentLeave}
+          t={t}
+          lang={lang}
+        />
       </section>
 
       <div className="desk-grid">

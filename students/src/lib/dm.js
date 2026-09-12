@@ -1,11 +1,18 @@
 /** Direct-message helpers shared into each app hub. */
 export function createDmApi(rest) {
   function mapThread(row) {
+    const staffRole = row.staff_role
+    const staffName = String(row.staff_name || '')
+      .replace(/\bmadam\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim()
     return {
       id: row.id,
       staffId: row.staff_id,
-      staffRole: row.staff_role,
-      staffName: row.staff_name || '',
+      staffRole,
+      staffName:
+        staffName ||
+        (staffRole === 'madam' || staffRole === 'principal' ? 'Principal' : staffRole === 'teacher' ? 'Teacher' : ''),
       studentId: row.student_id,
       studentName: row.student_name || '',
       lastMessageAt: row.last_message_at,
@@ -14,12 +21,18 @@ export function createDmApi(rest) {
   }
 
   function mapDm(row) {
+    const authorRole = row.author_role
+    let authorName = String(row.author_name || '')
+      .replace(/\bmadam\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+    if (!authorName && (authorRole === 'madam' || authorRole === 'principal')) authorName = 'Principal'
     return {
       id: row.id,
       threadId: row.thread_id,
       authorId: row.author_id,
-      authorName: row.author_name,
-      authorRole: row.author_role,
+      authorName,
+      authorRole,
       body: row.body || '',
       fileName: row.file_name || '',
       fileType: row.file_type || '',
@@ -39,7 +52,12 @@ export function createDmApi(rest) {
       const res = await rest.insert('nfctag_dm_threads', {
         staff_id: staffId,
         staff_role: role,
-        staff_name: staffName || '',
+        staff_name:
+          String(staffName || '')
+            .replace(/\bmadam\b/gi, '')
+            .replace(/\s+/g, ' ')
+            .trim() ||
+          (role === 'madam' ? 'Principal' : ''),
         student_name: studentName || '',
         student_id: studentId,
       })
@@ -50,7 +68,7 @@ export function createDmApi(rest) {
     async listDmThreadsForStudent(studentId) {
       const res = await rest.get(
         'nfctag_dm_threads',
-        `?select=*&student_id=eq.${studentId}&order=last_message_at.desc&limit=100`,
+        `?select=*&student_id=eq.${studentId}&staff_role=eq.teacher&order=last_message_at.desc&limit=100`,
       )
       if (res.error) return { ok: false, error: res.error.message, threads: [] }
       return { ok: true, threads: (res.data || []).map(mapThread) }
@@ -77,11 +95,33 @@ export function createDmApi(rest) {
     async postDmMessage({ threadId, body, fileName, fileType, fileData }, user) {
       if (!threadId) return { ok: false, error: 'Chat is required.' }
       if (!body?.trim() && !fileData) return { ok: false, error: 'Write a message or attach a file.' }
+
+      if (user?.role === 'student') {
+        const threadRes = await rest.get(
+          'nfctag_dm_threads',
+          `?select=staff_role,student_id&id=eq.${encodeURIComponent(threadId)}&limit=1`,
+        )
+        if (threadRes.error) return { ok: false, error: threadRes.error.message }
+        const thread = (threadRes.data || [])[0]
+        if (!thread || thread.student_id !== user.id) {
+          return { ok: false, error: 'Chat not found.' }
+        }
+        if (thread.staff_role !== 'teacher') {
+          return { ok: false, error: 'You can only chat with your teacher.' }
+        }
+      }
+
+      const authorName =
+        String(user.name || '')
+          .replace(/\bmadam\b/gi, '')
+          .replace(/\s+/g, ' ')
+          .trim() ||
+        (user.role === 'madam' || user.role === 'principal' ? 'Principal' : user.name || '')
       const res = await rest.insert('nfctag_dm_messages', {
         thread_id: threadId,
         author_id: user.id,
-        author_name: user.name,
-        author_role: user.role,
+        author_name: authorName,
+        author_role: user.role === 'madam' ? 'madam' : user.role,
         body: (body || '').trim(),
         file_name: fileName || null,
         file_type: fileType || null,

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { displayPhoto } from '../lib/avatar'
 import { readShareFile } from '../lib/fileShare'
+import { cleanPersonName, roleLabel } from '../lib/roles'
 import { listClassCards } from '../lib/school'
 import { useI18n } from '../i18n/I18nContext'
 
@@ -223,8 +224,8 @@ export function GroupBoard({
                     <article key={item.id} className={`wa-bubble ${mine ? 'mine' : ''}`}>
                       {!mine ? (
                         <div className="wa-meta">
-                          <b>{item.authorName}</b>
-                          <span>{item.authorRole}</span>
+                          <b>{cleanPersonName(item.authorName, item.authorRole) || roleLabel(item.authorRole, t)}</b>
+                          <span>{roleLabel(item.authorRole, t)}</span>
                         </div>
                       ) : null}
                       {item.body ? <p>{item.body}</p> : null}

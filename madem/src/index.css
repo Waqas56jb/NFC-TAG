@@ -3335,3 +3335,12 @@ html {
     width: 100%;
   }
 }
+
+.student-leave-times {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+.student-leave-times span { display: block; font-size: 0.72rem; font-weight: 700; }
+.student-leave-times b { font-size: 0.9rem; }

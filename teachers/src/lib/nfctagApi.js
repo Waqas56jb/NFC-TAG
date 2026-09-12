@@ -18,9 +18,13 @@ function fail(error) {
 }
 
 function mapMadam(row) {
+  const cleaned = String(row.name || '')
+    .replace(/\bmadam\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
   return {
     id: row.id,
-    name: row.name,
+    name: cleaned || 'Principal',
     email: row.email,
     password: row.password,
     role: 'madam',
@@ -232,7 +236,7 @@ export function createNftagApi(supabase) {
       if (sub.error) return fail(sub.error)
       if (sub.data?.[0]) {
         if (sub.data[0].status === 'blocked') {
-          return { ok: false, error: 'This sub-user is blocked. Ask Madam to restore access.' }
+          return { ok: false, error: 'This sub-user is blocked. Ask Principal to restore access.' }
         }
         return { ok: true, session: { id: sub.data[0].id, role: 'sub' } }
       }
@@ -245,7 +249,7 @@ export function createNftagApi(supabase) {
       if (res.error) return fail(res.error)
       if (!res.data?.[0]) return { ok: false, error: 'Email or password is incorrect.' }
       if (res.data[0].status === 'blocked') {
-        return { ok: false, error: 'This teacher login is blocked. Ask Madam to restore it.' }
+        return { ok: false, error: 'This teacher login is blocked. Ask Principal to restore it.' }
       }
       return {
         ok: true,
@@ -285,7 +289,7 @@ export function createNftagApi(supabase) {
       return { ok: true }
     },
     async insertSubUser(payload, user) {
-      if (user.role !== 'madam') return { ok: false, error: 'Only Madam can create sub-users.' }
+      if (user.role !== 'madam') return { ok: false, error: 'Only Principal can create sub-users.' }
       if (await emailTaken(payload.email)) return { ok: false, error: 'This email is already in use.' }
       const { error } = await supabase.from('nfctag_sub_users').insert({
         name: payload.name.trim(),
@@ -298,7 +302,7 @@ export function createNftagApi(supabase) {
       return { ok: true }
     },
     async setSubUserStatus(id, status, user, name) {
-      if (user.role !== 'madam') return { ok: false, error: 'Only Madam can do this.' }
+      if (user.role !== 'madam') return { ok: false, error: 'Only Principal can do this.' }
       const { error } = await supabase.from('nfctag_sub_users').update({ status }).eq('id', id)
       if (error) return fail(error)
       await addActivity(user, status === 'blocked' ? 'blocked' : 'restored', 'sub-user', name, `${status} sub-user`)
@@ -318,7 +322,7 @@ export function createNftagApi(supabase) {
         .update({ name: name.trim(), email: email.trim().toLowerCase(), password, updated_at: new Date().toISOString() })
         .eq('id', id)
       if (error) return fail(error)
-      await addActivity(user, 'updated', 'madam', name.trim(), 'Updated Madam account details')
+      await addActivity(user, 'updated', 'madam', name.trim(), 'Updated Principal account details')
       return { ok: true }
     },
     async insertClass(gradeName, sectionName, user) {

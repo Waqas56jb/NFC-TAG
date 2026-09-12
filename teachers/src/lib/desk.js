@@ -32,7 +32,7 @@ function mapNote(row) {
     title: row.title,
     body: row.body || '',
     kind: row.kind || '',
-    authorName: row.kind === 'leave' ? 'Madam' : 'School',
+    authorName: row.kind === 'leave' ? 'Principal' : 'School',
     authorId: '',
     createdAt: row.created_at,
   }

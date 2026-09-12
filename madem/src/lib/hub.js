@@ -85,6 +85,9 @@ export function createHub(rest) {
     },
 
     async postMessage({ groupId, body, fileName, fileType, fileData }, user) {
+      if (user?.role === 'student') {
+        return { ok: false, error: 'Students can only read class announcements.' }
+      }
       if (!body?.trim() && !fileData) return { ok: false, error: 'Write a message or attach a file.' }
       const res = await rest.insert('nfctag_group_messages', {
         group_id: groupId,

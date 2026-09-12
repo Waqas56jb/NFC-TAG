@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { readShareFile } from '../lib/fileShare'
+import { cleanPersonName } from '../lib/roles'
 import { useI18n } from '../i18n/I18nContext'
 import { Modal } from './Modal'
 
@@ -36,7 +37,7 @@ export function StaffDmModal({ open, student, user, onClose, openThread, loadMes
     openThread({
       staffId: user.id,
       staffRole: user.role === 'sub' ? 'sub' : user.role === 'madam' ? 'madam' : 'teacher',
-      staffName: user.name,
+      staffName: cleanPersonName(user.name, user.role) || (user.role === 'madam' ? 'Principal' : user.name),
       studentId: student.id,
       studentName: student.name,
     }).then(async (result) => {

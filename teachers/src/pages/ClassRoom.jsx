@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Navigate, useLocation, useParams } from 'react-router-dom'
 import { ChatIconButton } from '../components/ChatIconButton'
 import { Crumbs } from '../components/Crumbs'
+import { HomeworkPanel } from '../components/HomeworkPanel'
 import { StaffDmModal } from '../components/StaffDmModal'
 import { useTeacher } from '../context/TeacherContext'
 import { useI18n } from '../i18n/I18nContext'
@@ -64,7 +65,7 @@ export function ClassRoom() {
   const { gradeSlug, sectionSlug } = useParams()
   const location = useLocation()
   const { t, lang } = useI18n()
-  const { school, teacher, canOpen, saveAttendance, openDmThread, loadDmMessages, postDmMessage } = useTeacher()
+  const { school, teacher, canOpen, saveAttendance, openDmThread, loadDmMessages, postDmMessage, listHomework, createHomework, deleteHomework } = useTeacher()
   const match = resolveClassRoute(school.grades, gradeSlug, sectionSlug)
   const gradeId = match?.gradeId
   const sectionId = match?.sectionId
@@ -186,9 +187,21 @@ export function ClassRoom() {
         <button className={tab === 'students' ? 'primary' : 'ghost'} onClick={() => setTab('students')}>
           {t('tabStudents')}
         </button>
+        <button className={tab === 'homework' ? 'primary' : 'ghost'} onClick={() => setTab('homework')}>
+          {t('tabHomework')}
+        </button>
       </div>
 
-      {tab === 'students' ? (
+      {tab === 'homework' ? (
+        <HomeworkPanel
+          gradeId={gradeId}
+          sectionId={sectionId}
+          teacherId={teacher?.id}
+          listHomework={listHomework}
+          createHomework={createHomework}
+          deleteHomework={deleteHomework}
+        />
+      ) : tab === 'students' ? (
         <>
           <div className="toolbar">
             <input

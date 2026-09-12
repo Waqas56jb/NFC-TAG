@@ -1,4 +1,5 @@
 import { createDmApi } from './dm'
+import { createHomeworkApi } from './homework'
 import { createStudentLeaveApi } from './studentLeave'
 
 function mapGroup(row) {
@@ -46,6 +47,7 @@ export function createHub(rest) {
   return {
     ...createDmApi(rest),
     ...createStudentLeaveApi(rest),
+    ...createHomeworkApi(rest),
     async listGroups() {
       const res = await rest.get('nfctag_groups', '?select=*&order=created_at.desc&limit=200')
       if (res.error) return { ok: false, error: res.error.message, groups: [] }
@@ -85,6 +87,9 @@ export function createHub(rest) {
     },
 
     async postMessage({ groupId, body, fileName, fileType, fileData }, user) {
+      if (user?.role === 'student') {
+        return { ok: false, error: 'Students can only read class announcements.' }
+      }
       if (!body?.trim() && !fileData) return { ok: false, error: 'Write a message or attach a file.' }
       const res = await rest.insert('nfctag_group_messages', {
         group_id: groupId,

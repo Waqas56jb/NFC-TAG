@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { displayPhoto } from '../lib/avatar'
 import { readShareFile } from '../lib/fileShare'
+import { cleanPersonName, roleLabel } from '../lib/roles'
 import { useI18n } from '../i18n/I18nContext'
 
 function prettyTime(iso, lang) {
@@ -33,7 +34,8 @@ export function DmInbox({
   threads,
   loadMessages,
   onPost,
-  peerLabel = (thread) => thread.staffName || thread.staffRole,
+  canPost = true,
+  peerLabel = (thread) => cleanPersonName(thread.staffName, thread.staffRole) || roleLabel(thread.staffRole),
 }) {
   const { t, lang, tx } = useI18n()
   const [activeId, setActiveId] = useState('')
@@ -46,6 +48,14 @@ export function DmInbox({
   const threadRef = useRef(null)
 
   const active = threads.find((x) => x.id === activeId) || threads[0]
+
+  function peerRole(thread) {
+    return roleLabel(thread.staffRole, t)
+  }
+
+  function authorDisplay(item) {
+    return cleanPersonName(item.authorName, item.authorRole) || roleLabel(item.authorRole, t)
+  }
 
   useEffect(() => {
     if (!active?.id) {
@@ -68,7 +78,7 @@ export function DmInbox({
 
   async function send(e) {
     e.preventDefault()
-    if (!active || sending) return
+    if (!canPost || !active || sending) return
     setError('')
     setSending(true)
     try {
@@ -124,7 +134,7 @@ export function DmInbox({
                 />
                 <span className="wa-chat-text">
                   <b>{peerLabel(thread)}</b>
-                  <small>{thread.staffRole || t('dmChat')}</small>
+                  <small>{peerRole(thread)}</small>
                 </span>
                 <span className="wa-chat-chev" aria-hidden="true">
                   ›
@@ -164,8 +174,8 @@ export function DmInbox({
                     <article key={item.id} className={`wa-bubble ${mine ? 'mine' : ''}`}>
                       {!mine ? (
                         <div className="wa-meta">
-                          <b>{item.authorName}</b>
-                          <span>{item.authorRole}</span>
+                          <b>{authorDisplay(item)}</b>
+                          <span>{roleLabel(item.authorRole, t)}</span>
                         </div>
                       ) : null}
                       {item.body ? <p>{item.body}</p> : null}
@@ -178,6 +188,7 @@ export function DmInbox({
                 })
               )}
             </div>
+            {canPost ? (
             <form className="wa-composer" onSubmit={send}>
               {file ? (
                 <div className="wa-attach-chip">
@@ -228,6 +239,9 @@ export function DmInbox({
               </div>
               {error ? <div className="error">{error}</div> : null}
             </form>
+            ) : (
+              <p className="wa-view-only muted">{t('dmViewOnly')}</p>
+            )}
           </>
         ) : (
           <div className="empty">{t('dmEmpty')}</div>

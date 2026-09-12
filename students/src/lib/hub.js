@@ -1,4 +1,5 @@
 import { createDmApi } from './dm'
+import { createHomeworkApi } from './homework'
 import { createStudentLeaveApi } from './studentLeave'
 
 function parseMarks(value) {
@@ -50,6 +51,37 @@ export function createHub(rest) {
   return {
     ...createDmApi(rest),
     ...createStudentLeaveApi(rest),
+    ...createHomeworkApi(rest),
+    async listClassTeachers(gradeId, sectionId) {
+      if (!gradeId || !sectionId) return { ok: true, teachers: [] }
+      const assigns = await rest.get(
+        'nfctag_assignments',
+        `?select=teacher_id,hidden&grade_id=eq.${encodeURIComponent(gradeId)}&section_id=eq.${encodeURIComponent(sectionId)}`,
+      )
+      if (assigns.error) return { ok: false, error: assigns.error.message, teachers: [] }
+      const teacherIds = [
+        ...new Set(
+          (assigns.data || [])
+            .filter((a) => !a.hidden && a.teacher_id)
+            .map((a) => a.teacher_id),
+        ),
+      ]
+      if (!teacherIds.length) return { ok: true, teachers: [] }
+      const inList = `(${teacherIds.map((id) => encodeURIComponent(id)).join(',')})`
+      const teachers = await rest.get(
+        'nfctag_teachers',
+        `?select=id,name,subject&id=in.${inList}&order=name.asc`,
+      )
+      if (teachers.error) return { ok: false, error: teachers.error.message, teachers: [] }
+      return {
+        ok: true,
+        teachers: (teachers.data || []).map((row) => ({
+          id: row.id,
+          name: row.name || '',
+          subject: row.subject || '',
+        })),
+      }
+    },
     async listGroups() {
       const res = await rest.get('nfctag_groups', '?select=*&order=created_at.desc&limit=200')
       if (res.error) return { ok: false, error: res.error.message, groups: [] }
@@ -61,6 +93,9 @@ export function createHub(rest) {
       return { ok: true, messages: (res.data || []).map(mapMessage) }
     },
     async postMessage({ groupId, body, fileName, fileType, fileData }, user) {
+      if (user?.role === 'student') {
+        return { ok: false, error: 'Students can only read class announcements.' }
+      }
       if (!body?.trim() && !fileData) return { ok: false, error: 'Write a message or attach a file.' }
       const res = await rest.insert('nfctag_group_messages', { group_id: groupId, author_id: user.id, author_name: user.name, author_role: user.role, body: (body || '').trim(), file_name: fileName || null, file_type: fileType || null, file_data: fileData || null })
       if (res.error) return { ok: false, error: res.error.message }

@@ -291,7 +291,7 @@ export function AppProvider({ children }) {
     async reviewStudentLeave(id, status) {
       if (!user) return { ok: false, error: t('errSignIn') }
       return withBusy(async () => {
-        const result = await hub.reviewStudentLeave(id, status, user)
+        const result = await hub.reviewStudentLeave(id, status, { ...user, role: user.role || 'madam' })
         if (!result.ok) {
           notify(tx(result.error), 'bad')
           return result
@@ -305,6 +305,20 @@ export function AppProvider({ children }) {
               ? t('toastStudentLeaveReturned')
               : t('toastStudentLeaveRejected'),
         )
+        return result
+      })
+    },
+    async markStudentReturned(id) {
+      if (!user) return { ok: false, error: t('errSignIn') }
+      return withBusy(async () => {
+        const result = await hub.markStudentReturned(id, user)
+        if (!result.ok) {
+          notify(tx(result.error), 'bad')
+          return result
+        }
+        const leaves = await hub.listStudentLeaves()
+        if (leaves.ok) setStudentLeaves(leaves.leaves)
+        notify(t('toastStudentLeaveReturned'))
         return result
       })
     },

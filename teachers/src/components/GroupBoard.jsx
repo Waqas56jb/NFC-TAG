@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { displayPhoto } from '../lib/avatar'
 import { readPhoto } from '../lib/photo'
 import { readShareFile } from '../lib/fileShare'
+import { cleanPersonName, roleLabel } from '../lib/roles'
 import { listClassCards } from '../lib/school'
 import { useI18n } from '../i18n/I18nContext'
 
@@ -248,8 +249,8 @@ export function GroupBoard({
                 messages.map((item) => (
                   <article key={item.id} className={`wa-bubble ${item.authorId === user.id ? 'mine' : ''}`}>
                     <div className="wa-meta">
-                      <b>{item.authorName}</b>
-                      <span>{item.authorRole}</span>
+                      <b>{cleanPersonName(item.authorName, item.authorRole) || roleLabel(item.authorRole, t)}</b>
+                      <span>{roleLabel(item.authorRole, t)}</span>
                       {canDelete ? (
                         <button
                           type="button"

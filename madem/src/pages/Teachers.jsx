@@ -9,7 +9,7 @@ import { listClassCards, prettyDate, prettyTime, todayKey } from '../lib/school'
 const emptyForm = { name: '', email: '', password: '', subject: '' }
 
 export function Teachers() {
-  const { store, user, createTeacher, updateTeacherStatus, deleteTeacher, assignClass, hideAssignment, unassignClass, teacherDays, teacherLeaves, studentLeaves, reviewLeave, reviewStudentLeave } = useApp()
+  const { store, user, createTeacher, updateTeacherStatus, deleteTeacher, assignClass, hideAssignment, unassignClass, teacherDays, teacherLeaves, studentLeaves, reviewLeave, markStudentReturned, reviewStudentLeave } = useApp()
   const { t, tx, lang } = useI18n()
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
@@ -87,7 +87,7 @@ export function Teachers() {
       ) : null}
 
       {tab === 'passes' ? (
-        <StudentLeavesPanel leaves={studentLeaves} onReview={reviewStudentLeave} t={t} lang={lang} />
+        <StudentLeavesPanel leaves={studentLeaves} onReturn={markStudentReturned} onReview={reviewStudentLeave} t={t} lang={lang} readOnly={!user} />
       ) : null}
 
       {tab === 'staff' ? (
