@@ -62,6 +62,7 @@ export const ar = {
   colAge: 'العمر',
   colParentPhone: 'هاتف ولي الأمر',
   colNic: 'الهوية',
+  colActions: 'إجراءات',
   createAttend: 'إنشاء حضور جديد',
   createAttendHint: 'اختر التاريخ ثم أنشئ كشف حضور. التواريخ الموجودة تُفتح للتعديل.',
   creating: 'جاري الإنشاء…',

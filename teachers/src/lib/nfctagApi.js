@@ -1,4 +1,5 @@
 import { rest } from './rest'
+import { generateElegantTagCode } from './nfcTag'
 
 export const emptySchool = {
   madam: { id: '', name: '', email: '', password: '' },
@@ -381,10 +382,27 @@ export function createNftagApi(supabase) {
     },
     async insertStudent(gradeId, sectionId, payload, user, classLabel) {
       if (!payload.name?.trim()) return { ok: false, error: 'Student name is required.' }
-      const { error } = await supabase.from('nfctag_students').insert(this.studentRow(gradeId, sectionId, payload, user))
-      if (error) return fail(error)
-      await addActivity(user, 'created', 'student', payload.name.trim(), `Added student to ${classLabel}`)
-      return { ok: true }
+      const row = this.studentRow(gradeId, sectionId, payload, user)
+      let lastError = null
+      for (let attempt = 0; attempt < 10; attempt += 1) {
+        row.tag_code = generateElegantTagCode()
+        const { error } = await supabase.from('nfctag_students').insert(row)
+        if (!error) {
+          await addActivity(user, 'created', 'student', payload.name.trim(), `Added student to ${classLabel}`)
+          return { ok: true }
+        }
+        lastError = error
+        if (String(error.message || '').includes('tag_code')) {
+          delete row.tag_code
+          const retry = await supabase.from('nfctag_students').insert(row)
+          if (retry.error) return fail(retry.error)
+          await addActivity(user, 'created', 'student', payload.name.trim(), `Added student to ${classLabel}`)
+          return { ok: true }
+        }
+        if (error.code === '23505' || /duplicate|unique/i.test(String(error.message || ''))) continue
+        return fail(error)
+      }
+      return fail(lastError)
     },
     async patchStudent(id, payload, user) {
       if (!payload.name?.trim()) return { ok: false, error: 'Student name is required.' }

@@ -120,18 +120,18 @@ export function Teachers() {
             <tbody>
               {rows.map((teacher) => (
                 <tr key={teacher.id}>
-                  <td>
+                  <td data-label={t('colTeacher')}>
                     <strong>{teacher.name}</strong>
                   </td>
-                  <td>{teacher.email}</td>
-                  <td>
+                  <td data-label={t('colEmail')}>{teacher.email}</td>
+                  <td data-label={t('colPassword')}>
                     <Secret value={teacher.password} />
                   </td>
-                  <td>{teacher.subject}</td>
-                  <td>
+                  <td data-label={t('colSubject')}>{teacher.subject}</td>
+                  <td data-label={t('colStatus')}>
                     <span className={`badge ${teacher.status === 'active' ? 'on' : 'off'}`}>{teacher.status === 'active' ? t('active') : t('blocked')}</span>
                   </td>
-                  <td>
+                  <td data-label={t('colAssigned')}>
                     <div className="chip-wrap">
                       {(store.assignments || [])
                         .filter((a) => a.teacherId === teacher.id)
@@ -149,7 +149,7 @@ export function Teachers() {
                       ) : null}
                     </div>
                   </td>
-                  <td>
+                  <td data-label={t('colActions')}>
                     <div className="row-actions">
                       <button className="ghost" onClick={() => setAssigning(teacher)}>
                         {t('assign')}
@@ -317,11 +317,11 @@ function TeacherDaysPanel({ teachers, days, date, setDate, t, lang }) {
           <tbody>
             {rows.map(({ teacher, day }) => (
               <tr key={teacher.id}>
-                <td><strong>{teacher.name}</strong><div className="muted">{teacher.subject}</div></td>
-                <td>{prettyTime(day?.checkInAt, lang)}</td>
-                <td>{prettyTime(day?.checkOutAt, lang)}</td>
-                <td>{hoursBetween(day?.checkInAt, day?.checkOutAt)}</td>
-                <td>
+                <td data-label={t('colTeacher')}><strong>{teacher.name}</strong><div className="muted">{teacher.subject}</div></td>
+                <td data-label={t('colCheckIn')}>{prettyTime(day?.checkInAt, lang)}</td>
+                <td data-label={t('colCheckOut')}>{prettyTime(day?.checkOutAt, lang)}</td>
+                <td data-label={t('colHours')}>{hoursBetween(day?.checkInAt, day?.checkOutAt)}</td>
+                <td data-label={t('colStatus')}>
                   <span className={`badge ${day?.checkInAt ? 'on' : 'off'}`}>
                     {day?.checkOutAt ? t('statusOut') : day?.checkInAt ? t('statusIn') : t('statusAbsent')}
                   </span>
@@ -364,11 +364,11 @@ function TeacherLeavesPanel({ leaves, onReview, t, lang }) {
         <tbody>
           {leaves.map((item) => (
             <tr key={item.id}>
-              <td><strong>{item.teacherName}</strong></td>
-              <td>{prettyDate(item.startDate, lang)} — {prettyDate(item.endDate, lang)}</td>
-              <td>{item.reason || '—'}</td>
-              <td><span className={`badge ${item.status === 'approved' ? 'on' : item.status === 'rejected' ? 'off' : ''}`}>{t(`leave_${item.status}`)}</span></td>
-              <td>
+              <td data-label={t('colTeacher')}><strong>{item.teacherName}</strong></td>
+              <td data-label={t('colDates')}>{prettyDate(item.startDate, lang)} — {prettyDate(item.endDate, lang)}</td>
+              <td data-label={t('colReason')}>{item.reason || '—'}</td>
+              <td data-label={t('colStatus')}><span className={`badge ${item.status === 'approved' ? 'on' : item.status === 'rejected' ? 'off' : ''}`}>{t(`leave_${item.status}`)}</span></td>
+              <td data-label={t('colActions')}>
                 {item.status === 'pending' ? (
                   <div className="row-actions">
                     <button

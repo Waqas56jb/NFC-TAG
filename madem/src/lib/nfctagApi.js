@@ -1,4 +1,5 @@
 import { rest } from './rest'
+import { generateElegantTagCode, isUglyTagCode, normalizeTagCode } from './nfcTag'
 
 export const emptySchool = {
   madam: { id: '', name: '', email: '', password: '' },
@@ -390,11 +391,20 @@ export function createNftagApi(supabase) {
         .replace(/^\.+|\.+$/g, '') || 'student'
       row.login_email = `${base}@student.nfctag.edu`
       row.password = 'Student@11'
-      row.tag_code =
-        payload.tagCode ||
-        `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`.replace(/[^a-z0-9]/gi, '').slice(0, 12).toUpperCase()
-      const { data, error } = await supabase.from('nfctag_students').insert(row).select('*').single()
-      if (error) {
+
+      const preferred = normalizeTagCode(payload.tagCode)
+      let lastError = null
+      for (let attempt = 0; attempt < 10; attempt += 1) {
+        row.tag_code =
+          attempt === 0 && preferred && !isUglyTagCode(preferred)
+            ? preferred
+            : generateElegantTagCode()
+        const { data, error } = await supabase.from('nfctag_students').insert(row).select('*').single()
+        if (!error) {
+          await addActivity(user, 'created', 'student', payload.name.trim(), `Added student to ${classLabel}`)
+          return { ok: true, student: mapStudent(data) }
+        }
+        lastError = error
         // Older DBs without tag_code: retry without the column.
         if (String(error.message || '').includes('tag_code')) {
           delete row.tag_code
@@ -403,10 +413,42 @@ export function createNftagApi(supabase) {
           await addActivity(user, 'created', 'student', payload.name.trim(), `Added student to ${classLabel}`)
           return { ok: true, student: mapStudent(retry.data) }
         }
+        // Unique collision — try another elegant code
+        if (error.code === '23505' || /duplicate|unique/i.test(String(error.message || ''))) {
+          continue
+        }
         return fail(error)
       }
-      await addActivity(user, 'created', 'student', payload.name.trim(), `Added student to ${classLabel}`)
-      return { ok: true, student: mapStudent(data) }
+      return fail(lastError)
+    },
+    async ensureElegantTagCode(studentId) {
+      if (!studentId) return { ok: false, error: 'Student missing.' }
+      const { data: current, error: readErr } = await supabase
+        .from('nfctag_students')
+        .select('*')
+        .eq('id', studentId)
+        .limit(1)
+        .maybeSingle()
+      if (readErr) return fail(readErr)
+      if (!current) return { ok: false, error: 'Student not found.' }
+      if (current.tag_code && !isUglyTagCode(current.tag_code)) {
+        return { ok: true, student: mapStudent(current), changed: false }
+      }
+      let lastError = null
+      for (let attempt = 0; attempt < 10; attempt += 1) {
+        const code = generateElegantTagCode()
+        const { data, error } = await supabase
+          .from('nfctag_students')
+          .update({ tag_code: code, updated_at: new Date().toISOString() })
+          .eq('id', studentId)
+          .select('*')
+          .single()
+        if (!error) return { ok: true, student: mapStudent(data), changed: true }
+        lastError = error
+        if (error.code === '23505' || /duplicate|unique/i.test(String(error.message || ''))) continue
+        return fail(error)
+      }
+      return fail(lastError)
     },
     async patchStudent(id, payload, user) {
       if (!payload.name?.trim()) return { ok: false, error: 'Student name is required.' }

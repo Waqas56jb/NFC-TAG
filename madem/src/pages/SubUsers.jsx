@@ -61,17 +61,17 @@ export function SubUsers() {
             <tbody>
               {store.subUsers.map((s) => (
                 <tr key={s.id}>
-                  <td>
+                  <td data-label={t('colName')}>
                     <strong>{s.name}</strong>
                   </td>
-                  <td>{s.email}</td>
-                  <td>
+                  <td data-label={t('colEmail')}>{s.email}</td>
+                  <td data-label={t('colPassword')}>
                     <Secret value={s.password} />
                   </td>
-                  <td>
+                  <td data-label={t('colStatus')}>
                     <span className={`badge ${s.status === 'active' ? 'on' : 'off'}`}>{s.status === 'active' ? t('active') : t('blocked')}</span>
                   </td>
-                  <td>
+                  <td data-label={t('colActions')}>
                     <div className="row-actions">
                       {s.status === 'active' ? (
                         <button className="warn" onClick={() => updateSubUserStatus(s.id, 'blocked')}>

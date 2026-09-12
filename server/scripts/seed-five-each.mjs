@@ -2,7 +2,7 @@
  * Seed exactly 5 rows into every nfctag_* table for client testing.
  * Login pages stay clean — credentials printed here only.
  */
-import { randomBytes, randomUUID } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -22,7 +22,10 @@ const env = Object.fromEntries(
 const uid = () => randomUUID()
 
 function tagCode() {
-  return randomBytes(6).toString('hex').toUpperCase()
+  const digits = '23456789'
+  const letters = 'ABCDEFGHJKMNPQRSTUVWXYZ'
+  const pick = (set) => set[Math.floor(Math.random() * set.length)]
+  return pick(digits) + pick(digits) + pick(letters) + pick(letters) + pick(letters) + pick(digits) + pick(digits)
 }
 
 const client = new pg.Client({

@@ -15,8 +15,12 @@ export function PublicChild() {
   useEffect(() => {
     let live = true
     setLoading(true)
+    const clean = String(code || '')
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9-]/g, '')
     hub
-      .fetchPublicStudent(code)
+      .fetchPublicStudent(clean)
       .then((result) => {
         if (!live) return
         if (!result.ok) {

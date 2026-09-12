@@ -172,6 +172,19 @@ export function AppProvider({ children }) {
     )
   }
 
+  async function ensureStudentTag(studentId) {
+    if (!studentId) return { ok: false, error: t('errStudentMissing') }
+    return withBusy(async () => {
+      const result = await api.ensureElegantTagCode(studentId)
+      if (!result.ok) {
+        notify(tx(result.error), 'bad')
+        return result
+      }
+      if (result.changed) await refresh()
+      return result
+    })
+  }
+
   async function updateStudent(id, payload) {
     const current = store.students.find((s) => s.id === id)
     if (!current) return { ok: false, error: t('errStudentMissing') }
@@ -242,6 +255,7 @@ export function AppProvider({ children }) {
     createClass,
     deleteClass,
     createStudent,
+    ensureStudentTag,
     updateStudent,
     deleteStudent,
     assignClass,

@@ -15,7 +15,7 @@ import { emptyStudent, studentFromRecord } from '../lib/studentFields'
 export function ClassDetail() {
   const { gradeSlug, sectionSlug } = useParams()
   const location = useLocation()
-  const { store, user, createStudent, updateStudent, deleteStudent, saveAttendance, openDmThread, loadDmMessages, postDmMessage, notify } = useApp()
+  const { store, user, createStudent, updateStudent, deleteStudent, saveAttendance, openDmThread, loadDmMessages, postDmMessage, notify, ensureStudentTag } = useApp()
   const { t, tx } = useI18n()
   const match = resolveClassRoute(store.grades, gradeSlug, sectionSlug)
   const gradeId = match?.gradeId
@@ -83,7 +83,10 @@ export function ClassDetail() {
     if (!student?.id) return
     setTagBusyId(student.id)
     try {
-      await copyStudentTagUrl(student)
+      const ensured = await ensureStudentTag?.(student.id)
+      const next = ensured?.ok && ensured.student ? ensured.student : student
+      await copyStudentTagUrl(next)
+      if (viewing?.id === next.id) setViewing(next)
       notify?.(t('toastNfcCopied'))
     } catch (err) {
       notify?.(err.message || t('errNfcCopy'), 'bad')
@@ -163,7 +166,7 @@ export function ClassDetail() {
             <tbody>
               {students.map((student) => (
                 <tr key={student.id}>
-                  <td>
+                  <td data-label={t('colStudent')}>
                     <div className="person-cell">
                       {student.photo ? (
                         <img className="avatar" src={student.photo} alt="" />
@@ -176,11 +179,11 @@ export function ClassDetail() {
                       </div>
                     </div>
                   </td>
-                  <td>{student.age || '—'}</td>
-                  <td>{student.parentPhone || '—'}</td>
-                  <td>{student.nic || '—'}</td>
-                  <td>{student.rollNo || '—'}</td>
-                  <td>
+                  <td data-label={t('colAge')}>{student.age || '—'}</td>
+                  <td data-label={t('colParentPhone')}>{student.parentPhone || '—'}</td>
+                  <td data-label={t('colNic')}>{student.nic || '—'}</td>
+                  <td data-label={t('colRoll')}>{student.rollNo || '—'}</td>
+                  <td data-label={t('colActions')}>
                     <div className="row-actions">
                       <ChatIconButton label={t('message')} onClick={() => setMessaging(student)} />
                       <button className="ghost" onClick={() => setViewing(student)}>

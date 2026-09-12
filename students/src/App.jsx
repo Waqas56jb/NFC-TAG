@@ -8,7 +8,6 @@ import { Leave } from './pages/Leave'
 import { Login } from './pages/Login'
 import { Profile } from './pages/Profile'
 import { PublicChild } from './pages/PublicChild'
-import { ScanTag } from './pages/ScanTag'
 
 function Guard({ children }) {
   const { student } = useStudent()
@@ -20,7 +19,6 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/scan" element={<ScanTag />} />
       <Route path="/c/:code" element={<PublicChild />} />
       <Route
         element={

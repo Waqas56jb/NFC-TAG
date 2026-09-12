@@ -218,7 +218,7 @@ export function ClassRoom() {
                     .filter((s) => s.name.toLowerCase().includes(query.trim().toLowerCase()))
                     .map((student) => (
                       <tr key={student.id}>
-                        <td>
+                        <td data-label={t('colStudent')}>
                           <div className="person-cell">
                             <StudentFace student={student} />
                             <div>
@@ -227,10 +227,10 @@ export function ClassRoom() {
                             </div>
                           </div>
                         </td>
-                        <td>{student.age || '—'}</td>
-                        <td>{student.parentPhone || '—'}</td>
-                        <td>{student.nic || '—'}</td>
-                        <td>
+                        <td data-label={t('colAge')}>{student.age || '—'}</td>
+                        <td data-label={t('colParentPhone')}>{student.parentPhone || '—'}</td>
+                        <td data-label={t('colNic')}>{student.nic || '—'}</td>
+                        <td data-label={t('colActions')}>
                           <div className="row-actions">
                             <ChatIconButton label={t('message')} onClick={() => setMessaging(student)} />
                             <button className="ghost" onClick={() => setViewing(student)}>

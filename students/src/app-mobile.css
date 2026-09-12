@@ -1,5 +1,12 @@
 /* Student Desk — elegant mobile app shell */
 
+html,
+body,
+#root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   background: #0a1410 !important;
   overscroll-behavior: none;
@@ -7,6 +14,7 @@ body {
 
 .phone-stage {
   min-height: 100dvh;
+  min-height: 100svh;
   display: grid;
   place-items: center;
   padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
@@ -14,12 +22,16 @@ body {
     radial-gradient(ellipse 80% 50% at 10% -10%, rgba(196, 122, 58, 0.22), transparent 50%),
     radial-gradient(ellipse 70% 45% at 95% 110%, rgba(47, 111, 78, 0.28), transparent 48%),
     linear-gradient(165deg, #07110d 0%, #0f1f18 48%, #0a1410 100%);
+  box-sizing: border-box;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .phone-app {
-  width: min(100%, 420px);
-  height: min(100dvh - 24px, 880px);
+  width: min(100%, 430px);
+  height: min(100dvh - 24px, 100svh - 24px, 900px);
   max-height: 100dvh;
+  max-height: 100svh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -33,6 +45,7 @@ body {
     0 32px 90px rgba(0, 0, 0, 0.5);
   position: relative;
   animation: phone-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  box-sizing: border-box;
 }
 
 @keyframes phone-in {
@@ -46,6 +59,26 @@ body {
   }
 }
 
+/* Full-bleed on phones + most tablets in portrait */
+@media (max-width: 900px) {
+  .phone-stage {
+    padding: 0;
+    place-items: stretch;
+    background: #f4efe6;
+  }
+
+  .phone-app {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    height: 100svh;
+    max-height: none;
+    border-radius: 0;
+    box-shadow: none;
+    animation: none;
+  }
+}
+
 @media (max-width: 480px) {
   .phone-stage {
     padding: 0;
@@ -55,6 +88,7 @@ body {
   .phone-app {
     width: 100%;
     height: 100dvh;
+    height: 100svh;
     max-height: none;
     border-radius: 0;
     box-shadow: none;
@@ -207,12 +241,20 @@ body {
 .app-body {
   flex: 1;
   min-height: 0;
+  width: 100%;
+  max-width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   padding: 14px 14px 16px;
   scrollbar-width: thin;
+  box-sizing: border-box;
+}
+
+.app-body > * {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* ——— Bottom tabs ——— */
@@ -1471,10 +1513,56 @@ html[dir="rtl"] .kpi-days {
   border-inline-start-width: 3px;
 }
 
-@media (min-width: 481px) and (max-height: 760px) {
+@media (min-width: 901px) and (max-height: 760px) {
   .phone-app {
     height: min(100dvh - 16px, 760px);
     border-radius: 24px;
+  }
+}
+
+.phone-app.bell-open {
+  overflow: hidden;
+}
+
+.phone-app.bell-open .app-body {
+  overflow: hidden;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .toast {
+    inset-inline: 14px;
+    left: 14px;
+    right: 14px;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    width: auto;
+    max-width: none;
+    z-index: 120;
+  }
+
+  .pf-quick {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pf-quick-card b {
+    font-size: clamp(0.85rem, 3.6vw, 1.05rem);
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+
+  button,
+  .primary,
+  .ghost,
+  .app-cta,
+  .pf-nfc-btn,
+  .pf-signout,
+  .leave-submit {
+    max-width: 100%;
   }
 }
 /* Attendance — premium mobile (v2) */
@@ -1768,8 +1856,17 @@ html[dir="rtl"] .kpi-days {
   font-size: 0.9rem;
 }
 
+@media (max-width: 480px) {
+  .attend-kpi { grid-template-columns: 1fr 1fr; }
+}
+
 @media (max-width: 360px) {
   .attend-kpi { grid-template-columns: 1fr 1fr; }
+  .tab-bar.tabs-4 .tab-item {
+    font-size: 0.58rem;
+    min-height: 50px;
+    padding-inline: 2px;
+  }
 }
 
 /* Profile — state-of-the-art mobile (v2) */
@@ -2853,3 +2950,74 @@ html[dir="rtl"] .pf-link {
   text-decoration: none;
 }
 
+
+/* ===== Cross-device polish (phone / tablet / desktop) ===== */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .phone-app {
+    max-width: 560px;
+    margin-inline: auto;
+  }
+
+  .phone-stage {
+    place-items: stretch;
+  }
+}
+
+@media (max-width: 900px) {
+  .public-child {
+    padding: max(16px, env(safe-area-inset-top)) 14px max(28px, env(safe-area-inset-bottom));
+  }
+
+  .public-card {
+    max-width: 100%;
+    border-radius: 22px;
+  }
+
+  .leave-type-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .leave-submit,
+  .leave-ok,
+  .pf-signout,
+  .pf-nfc-btn,
+  .app-cta {
+    min-height: 48px;
+    width: 100%;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .leave-type-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pf-quick {
+    grid-template-columns: 1fr;
+  }
+
+  .app-topbar h1 {
+    font-size: 1.1rem;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .tab-item,
+  .bell-btn,
+  .attend-kpi-card,
+  .leave-type-card,
+  .pf-signout {
+    min-height: 44px;
+  }
+}

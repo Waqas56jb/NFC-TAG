@@ -49,7 +49,7 @@ export function Account() {
         </div>
       </div>
 
-      <div className="account-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(260px, 320px)', gap: 18 }}>
+      <div className="account-grid">
         <form className="form-card" onSubmit={onSubmit}>
           <h3>{t('updateCreds')}</h3>
           <Field label={t('displayName')}>

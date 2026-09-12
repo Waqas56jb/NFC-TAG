@@ -62,6 +62,7 @@ export const en = {
   colAge: 'Age',
   colParentPhone: 'Parent phone',
   colNic: 'NIC',
+  colActions: 'Actions',
   createAttend: 'Create new attendance',
   createAttendHint: 'Select a date, then create a new sheet. Existing dates open for edit.',
   creating: 'Creating…',

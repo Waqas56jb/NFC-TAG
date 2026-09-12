@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link, Navigate, useSearchParams } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { useStudent } from '../context/StudentContext'
 import { LanguageToggle } from '../i18n/LanguageToggle'
 import { useI18n } from '../i18n/I18nContext'
@@ -95,9 +95,6 @@ export function Login() {
             {busy ? <span className="btn-spinner" aria-hidden="true" /> : null}
             <span>{busy ? t('signingIn') : asParent ? t('enterParentPortal') : t('enterDesk')}</span>
           </button>
-          <Link className="scan-login-link" to="/scan">
-            {t('scanTagCta')}
-          </Link>
         </form>
       </div>
     </div>

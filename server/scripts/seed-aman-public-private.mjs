@@ -5,7 +5,6 @@
  * - student/parent portal logins (parents use child credentials)
  * - tag_code for each student (NFC public URL)
  */
-import { randomBytes } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -25,7 +24,10 @@ const env = Object.fromEntries(
 const PUBLIC_BASE = (env.PUBLIC_TAG_BASE || 'https://nfc-students.vercel.app').replace(/\/$/, '')
 
 function makeCode() {
-  return randomBytes(6).toString('hex').toUpperCase()
+  const digits = '23456789'
+  const letters = 'ABCDEFGHJKMNPQRSTUVWXYZ'
+  const pick = (set) => set[Math.floor(Math.random() * set.length)]
+  return pick(digits) + pick(digits) + pick(letters) + pick(letters) + pick(letters) + pick(digits) + pick(digits)
 }
 
 function portrait(name, id) {

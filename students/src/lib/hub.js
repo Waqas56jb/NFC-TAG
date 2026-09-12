@@ -87,19 +87,22 @@ export function createHub(rest) {
       return { ok: true, student: mapStudent(row) }
     },
     async fetchPublicStudent(code) {
-      const key = String(code || '').trim()
+      const key = String(code || '')
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9-]/g, '')
       if (!key) return { ok: false, error: 'Missing child code.' }
 
       const isUuid =
         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(key)
 
-      // Never OR tag_code with id.eq(non-uuid) — PostgREST rejects invalid UUID and fails the whole query.
+      // Exact tag_code (stored uppercase elegant codes like 12FHE42)
       let res = await rest.get(
         'nfctag_students',
         `?select=*&tag_code=eq.${encodeURIComponent(key)}&limit=1`,
       )
       if ((!res.error && !(res.data || []).length) || res.error) {
-        // Case-insensitive tag_code (QR may upper/lower)
+        // Case-insensitive / legacy mixed-case codes
         res = await rest.get(
           'nfctag_students',
           `?select=*&tag_code=ilike.${encodeURIComponent(key)}&limit=1`,
