@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n/I18nContext'
+import { markHomeworkSeen, unreadHomeworkCount } from '../lib/fileShare'
 import { hub } from '../lib/hubClient'
 import { listClassCards } from '../lib/school'
 
@@ -41,6 +42,8 @@ export function StudentProvider({ children }) {
   const [dmThreads, setDmThreads] = useState([])
   const [leaves, setLeaves] = useState([])
   const [homework, setHomework] = useState([])
+  const [inboxNotes, setInboxNotes] = useState([])
+  const [homeworkTick, setHomeworkTick] = useState(0)
   const [classTeachers, setClassTeachers] = useState([])
   const [toast, setToast] = useState(null)
   const [actionBusy, setActionBusy] = useState(0)
@@ -93,12 +96,15 @@ export function StudentProvider({ children }) {
           sectionId: nextStudent.sectionId,
         })
         if (hw.ok) setHomework(hw.homework)
+        const notes = await hub.listStudentNotifications(nextStudent.id)
+        if (notes.ok) setInboxNotes(notes.notifications)
         const staff = await hub.listClassTeachers(nextStudent.gradeId, nextStudent.sectionId)
         if (staff.ok) setClassTeachers(staff.teachers)
       } else {
         setDmThreads([])
         setLeaves([])
         setHomework([])
+        setInboxNotes([])
         setClassTeachers([])
       }
       setBootError('')
@@ -152,7 +158,19 @@ export function StudentProvider({ children }) {
     setDmThreads([])
     setLeaves([])
     setHomework([])
+    setInboxNotes([])
     setClassTeachers([])
+  }
+
+  const homeworkUnread = useMemo(
+    () => (student?.id ? unreadHomeworkCount(homework, student.id) : 0),
+    [homework, student?.id, homeworkTick],
+  )
+
+  function seeHomework() {
+    if (!student?.id) return
+    markHomeworkSeen(student.id)
+    setHomeworkTick((n) => n + 1)
   }
 
   return (
@@ -163,9 +181,12 @@ export function StudentProvider({ children }) {
         groups,
         attendance,
         announcements,
+        inboxNotes,
         dmThreads,
         leaves,
         homework,
+        homeworkUnread,
+        seeHomework,
         classTeachers,
         allowedCards,
         toast,
@@ -238,6 +259,10 @@ export function StudentProvider({ children }) {
             sectionId: student.sectionId,
           })
           if (hw.ok) setHomework(hw.homework)
+          if (student?.id) {
+            const notes = await hub.listStudentNotifications(student.id)
+            if (notes.ok) setInboxNotes(notes.notifications)
+          }
           return hw
         },
         async refreshDmThreads() {

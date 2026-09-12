@@ -14,7 +14,7 @@ function hoursBetween(start, end) {
 }
 
 export function Desk() {
-  const { teacher, classes, teacherDays, teacherLeaves, studentLeaves, checkIn, checkOut, requestLeave, scanStudentLeave, markStudentReturned, reviewStudentLeave } = useTeacher()
+  const { teacher, classes, teacherDays, teacherLeaves, studentLeaves, checkIn, checkOut, requestLeave, scanStudentLeave, markStudentReturned, reviewStudentLeave, logout } = useTeacher()
   const { t, lang } = useI18n()
   const [form, setForm] = useState({ startDate: todayKey(), endDate: todayKey(), reason: '' })
   const [busy, setBusy] = useState('')
@@ -61,7 +61,7 @@ export function Desk() {
   }
 
   return (
-    <section className="desk-page">
+    <section className="app-screen desk-page">
       <header className="page-head">
         <p className="eyebrow">{t('deskEyebrow')}</p>
         <h2>{t('deskTitle')}</h2>
@@ -199,6 +199,19 @@ export function Desk() {
           </div>
         </section>
       </div>
+
+      <section className="card desk-account">
+        <div className="desk-account-who">
+          <div className="who-avatar">{(teacher.name || 'T').slice(0, 1)}</div>
+          <div>
+            <strong>{teacher.name}</strong>
+            <p className="muted">{t('roleLine', { subject: teacher.subject || t('teacherRole') })}</p>
+          </div>
+        </div>
+        <button className="ghost signout" type="button" onClick={logout}>
+          {t('signOut')}
+        </button>
+      </section>
     </section>
   )
 }

@@ -16,15 +16,9 @@ export const supabase = url && key
         detectSessionInUrl: false,
       },
       global: {
-        headers: { apikey: key },
-        fetch: (input, init = {}) => {
-          const headers = new Headers(init.headers || {})
-          headers.set('apikey', key)
-          const auth = headers.get('Authorization') || ''
-          if (auth.includes('sb_publishable_') || auth === `Bearer ${key}`) {
-            headers.delete('Authorization')
-          }
-          return fetch(input, { ...init, headers })
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
         },
       },
     })

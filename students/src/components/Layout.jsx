@@ -1,4 +1,5 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useMemo } from 'react'
 import { useStudent } from '../context/StudentContext'
 import { AnnounceBell } from './AnnounceBell'
 import { LanguageToggle } from '../i18n/LanguageToggle'
@@ -64,10 +65,17 @@ const titles = {
 }
 
 export function Layout() {
-  const { student, announcements } = useStudent()
+  const { student, announcements, inboxNotes, homeworkUnread } = useStudent()
   const { t } = useI18n()
   const location = useLocation()
   const titleKey = titles[location.pathname] || 'brand'
+  const inbox = useMemo(
+    () =>
+      [...(inboxNotes || []), ...(announcements || [])].sort((a, b) =>
+        String(b.createdAt || '').localeCompare(String(a.createdAt || '')),
+      ),
+    [inboxNotes, announcements],
+  )
 
   return (
     <div className="phone-stage">
@@ -79,7 +87,7 @@ export function Layout() {
           </div>
           <div className="app-topbar-actions">
             <LanguageToggle compact />
-            <AnnounceBell announcements={announcements} user={student} canPost={false} />
+            <AnnounceBell announcements={inbox} user={student} canPost={false} />
           </div>
         </header>
 
@@ -103,13 +111,13 @@ export function Layout() {
           <NavLink to="/assignments" className={({ isActive }) => `tab-item${isActive ? ' on' : ''}`}>
             <TabIcon name="work" />
             <span>{t('tabHomework')}</span>
+            {homeworkUnread ? <i className="tab-badge">{homeworkUnread > 9 ? '9+' : homeworkUnread}</i> : null}
           </NavLink>
           <NavLink to="/groups" className={({ isActive }) => `tab-item${isActive ? ' on' : ''}`}>
             <TabIcon name="chat" />
             <span>{t('tabGroup')}</span>
           </NavLink>
         </nav>
-
       </div>
     </div>
   )

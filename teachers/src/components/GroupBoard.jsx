@@ -153,13 +153,13 @@ export function GroupBoard({
     <div className={`wa-shell ${roomOpen ? 'room-open' : ''}`}>
       <aside className="wa-list">
         <div className="wa-list-head">
-          <div>
+          <div className="wa-list-head-text">
             <p className="eyebrow">{t('groupsEyebrow')}</p>
             <h2>{t('groupsTitle')}</h2>
           </div>
           {canCreate ? (
-            <button type="button" className="primary wa-btn" onClick={() => setOpen((v) => !v)}>
-              {t('createGroup')}
+            <button type="button" className="primary wa-btn wa-create-toggle" onClick={() => setOpen((v) => !v)}>
+              {open ? t('close') : t('createGroup')}
             </button>
           ) : null}
         </div>
@@ -227,13 +227,13 @@ export function GroupBoard({
         {active ? (
           <>
             <header className="wa-room-head">
-              <button type="button" className="ghost wa-btn wa-back" onClick={() => setRoomOpen(false)}>
-                {t('back')}
+              <button type="button" className="wa-back" aria-label={t('back')} onClick={() => setRoomOpen(false)}>
+                ‹
               </button>
               <GroupAvatar group={active} />
               <div className="wa-room-title">
                 <strong>{active.name}</strong>
-                <p className="muted">{t('groupHint')}</p>
+                <p className="muted">{t('announceViewOnly')}</p>
               </div>
               {canEditPhoto ? (
                 <label className="ghost wa-btn wa-photo-btn">
@@ -244,7 +244,7 @@ export function GroupBoard({
             </header>
             <div className="wa-thread">
               {messages.length === 0 ? (
-                <div className="empty">{t('noMessages')}</div>
+                <div className="empty">{t('noAnnouncementsYet')}</div>
               ) : (
                 messages.map((item) => (
                   <article key={item.id} className={`wa-bubble ${item.authorId === user.id ? 'mine' : ''}`}>
@@ -274,30 +274,51 @@ export function GroupBoard({
             </div>
             {canPost ? (
               <form className="wa-composer" onSubmit={send}>
-                <input value={text} onChange={(e) => setText(e.target.value)} placeholder={t('writeMessage')} />
-                <label className="ghost wa-btn attach">
-                  {file ? file.fileName : t('attach')}
+                {file ? (
+                  <div className="wa-attach-chip">
+                    <span>{file.fileName}</span>
+                    <button type="button" aria-label={t('cancel')} onClick={() => setFile(null)}>
+                      ×
+                    </button>
+                  </div>
+                ) : null}
+                <div className="wa-composer-row">
+                  <label className="wa-attach-btn" title={t('attach')}>
+                    <span className="visually-hidden">{t('attach')}</span>
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true">
+                      <path d="M21.4 11.6 12.1 20.9a5.2 5.2 0 0 1-7.4-7.4l9.9-9.9a3.5 3.5 0 0 1 4.9 4.9l-9.9 9.9a1.7 1.7 0 1 1-2.4-2.4l8.5-8.5" />
+                    </svg>
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx"
+                      onChange={async (e) => {
+                        const picked = e.target.files?.[0]
+                        e.target.value = ''
+                        if (!picked) return
+                        try {
+                          setFile(await readShareFile(picked))
+                          setError('')
+                        } catch (err) {
+                          setError(tx(err.message))
+                        }
+                      }}
+                    />
+                  </label>
                   <input
-                    type="file"
-                    hidden
-                    accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx"
-                    onChange={async (e) => {
-                      const picked = e.target.files?.[0]
-                      e.target.value = ''
-                      if (!picked) return
-                      try {
-                        setFile(await readShareFile(picked))
-                        setError('')
-                      } catch (err) {
-                        setError(tx(err.message))
-                      }
-                    }}
+                    className="wa-input"
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder={t('writeAnnouncement')}
                   />
-                </label>
-                <button className={`primary wa-btn${sending ? ' is-loading' : ''}`} type="submit" disabled={sending}>
-                  {sending ? <span className="btn-spinner" aria-hidden="true" /> : null}
-                  <span>{sending ? t('working') : t('send')}</span>
-                </button>
+                  <button
+                    className={`wa-send${sending ? ' is-loading' : ''}`}
+                    type="submit"
+                    disabled={sending || (!text.trim() && !file)}
+                  >
+                    {sending ? <span className="btn-spinner" aria-hidden="true" /> : <span>{t('send')}</span>}
+                  </button>
+                </div>
                 {error ? <div className="error">{error}</div> : null}
               </form>
             ) : (

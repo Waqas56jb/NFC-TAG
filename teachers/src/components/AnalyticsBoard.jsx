@@ -450,17 +450,17 @@ function StudentTable({ title, empty, rows, field, t }) {
           <tbody>
             {rows.map((row) => (
               <tr key={row.id}>
-                <td>
+                <td data-label={t('colStudent')}>
                   <div className="person-cell">
                     {row.photo ? <img className="avatar" src={row.photo} alt="" /> : <div className="avatar placeholder">{row.name.slice(0, 1)}</div>}
                     <strong>{row.name}</strong>
                   </div>
                 </td>
-                <td>{row.className}</td>
-                <td>{row.present}</td>
-                <td className={field === 'absent' ? 'hot' : ''}>{row.absent}</td>
-                <td className={field === 'leaves' ? 'hot' : ''}>{row.leaves}</td>
-                <td>{row.rate}%</td>
+                <td data-label={t('classCard')}>{row.className}</td>
+                <td data-label={t('kpiPresent')}>{row.present}</td>
+                <td data-label={t('kpiAbsent')} className={field === 'absent' ? 'hot' : ''}>{row.absent}</td>
+                <td data-label={t('kpiLeaves')} className={field === 'leaves' ? 'hot' : ''}>{row.leaves}</td>
+                <td data-label={t('kpiRate')}>{row.rate}%</td>
               </tr>
             ))}
           </tbody>

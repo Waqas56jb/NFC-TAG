@@ -94,14 +94,14 @@ export function TeacherProvider({ children }) {
       if (!result.ok) return result
       setSession(result.teacher)
       saveTeacherSession(result.teacher)
-      const data = await api.fetchSchool()
-      setSchool(data)
-      const [g, a] = await Promise.all([hub.listGroups(), hub.listAnnouncements()])
-      if (g.ok) setGroups(g.groups)
-      if (a.ok) setAnnouncements(a.announcements)
-      await refreshDesk(result.teacher.id)
-      notify(t('toastSignedIn') || 'Signed in.')
-      return { ok: true }
+      try {
+        await refresh()
+        notify(t('toastSignedIn') || 'Signed in.')
+        return { ok: true }
+      } catch (err) {
+        setBootError(err.message || 'Could not load school data.')
+        return { ok: false, error: err.message || 'Signed in, but school data failed to load. Tap Try again.' }
+      }
     })
   }
 
@@ -245,7 +245,10 @@ export function TeacherProvider({ children }) {
       async createHomework(payload) {
         if (!teacher) return { ok: false, error: t('errSignIn') }
         return withBusy(async () => {
-          const result = await hub.createHomework(payload, { ...teacher, role: 'teacher' })
+          const result = await hub.createHomework(
+            { ...payload, courseName: teacher.subject || payload.courseName || '' },
+            { ...teacher, role: 'teacher', subject: teacher.subject || '' },
+          )
           if (!result.ok) notify(tx(result.error), 'bad')
           else notify(t('toastHomeworkPosted'))
           return result

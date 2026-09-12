@@ -19,7 +19,7 @@ export class ErrorBoundary extends Component {
       return (
         <div className="crash-screen" role="alert">
           <div className="crash-card">
-            <p className="crash-kicker">NFC Tag</p>
+            <p className="crash-kicker">Aman</p>
             <h1>Something went wrong</h1>
             <p>The page hit an unexpected error. Your data is safe — try refreshing.</p>
             <button type="button" className="primary" onClick={() => window.location.assign('/')}>

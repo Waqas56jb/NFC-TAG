@@ -10,7 +10,15 @@ function formatWhen(iso, lang) {
   })
 }
 
-export function HomeworkPanel({ gradeId, sectionId, listHomework, createHomework, deleteHomework, teacherId }) {
+export function HomeworkPanel({
+  gradeId,
+  sectionId,
+  listHomework,
+  createHomework,
+  deleteHomework,
+  teacherId,
+  courseName = '',
+}) {
   const { t, lang, tx } = useI18n()
   const [items, setItems] = useState([])
   const [title, setTitle] = useState('')
@@ -19,6 +27,7 @@ export function HomeworkPanel({ gradeId, sectionId, listHomework, createHomework
   const [file, setFile] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const courseLabel = courseName || t('roleTeacher')
 
   async function load() {
     const result = await listHomework?.({ gradeId, sectionId })
@@ -41,6 +50,7 @@ export function HomeworkPanel({ gradeId, sectionId, listHomework, createHomework
         dueAt: dueAt ? new Date(dueAt).toISOString() : '',
         gradeId,
         sectionId,
+        courseName: courseLabel,
         fileName: file?.fileName,
         fileType: file?.fileType,
         fileData: file?.fileData,
@@ -75,6 +85,10 @@ export function HomeworkPanel({ gradeId, sectionId, listHomework, createHomework
       <form className="card" onSubmit={submit}>
         <h3>{t('hwPostTitle')}</h3>
         <p className="muted">{t('hwPostHint')}</p>
+        <p className="muted hw-course-line">
+          {t('hwCourse')}: <strong>{courseLabel}</strong>
+        </p>
+        <p className="muted hw-course-hint">{t('hwThisClass')}</p>
         <label className="field">
           <span>{t('hwTitleField')}</span>
           <input value={title} onChange={(e) => setTitle(e.target.value)} required disabled={busy} />
@@ -128,6 +142,11 @@ export function HomeworkPanel({ gradeId, sectionId, listHomework, createHomework
                 ) : null}
               </div>
               {item.body ? <p>{item.body}</p> : null}
+              {item.courseName ? (
+                <p className="muted">
+                  {t('hwCourse')}: {item.courseName}
+                </p>
+              ) : null}
               {item.dueAt ? (
                 <p className="muted">
                   {t('hwDue')}: {formatWhen(item.dueAt, lang)}

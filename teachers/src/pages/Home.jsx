@@ -7,13 +7,11 @@ export function Home() {
   const { t } = useI18n()
 
   return (
-    <>
-      <div className="topbar">
-        <div>
-          <p className="eyebrow">{t('eyebrowDesk')}</p>
-          <h2>{t('myClasses')}</h2>
-          <p>{t('homeLead', { name: teacher.name })}</p>
-        </div>
+    <section className="app-screen">
+      <div className="page-head">
+        <p className="eyebrow">{t('eyebrowDesk')}</p>
+        <h2>{t('myClasses')}</h2>
+        <p className="muted">{t('homeLead', { name: teacher.name })}</p>
       </div>
 
       {classes.length === 0 ? (
@@ -29,6 +27,6 @@ export function Home() {
           ))}
         </div>
       )}
-    </>
+    </section>
   )
 }

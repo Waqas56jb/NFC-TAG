@@ -6,6 +6,7 @@ const key = API_KEY
 function headers(extra = {}) {
   return {
     apikey: key,
+    Authorization: `Bearer ${key}`,
     Accept: 'application/json',
     'Content-Type': 'application/json',
     Prefer: 'return=representation',
@@ -24,12 +25,16 @@ function errorMessage(payload, status) {
   if (/bad gateway|service unavailable/i.test(text) || status === 502 || status === 503) {
     return 'School server is waking up. Tap Try again.'
   }
+  if (/failed to fetch/i.test(text)) {
+    return 'Could not reach the school database. Check your connection and try again.'
+  }
   if (text && text.length < 180 && !text.startsWith('<')) return text
   return `Database error ${status}`
 }
 
 function shouldRetry(status, err) {
   if (err?.name === 'AbortError') return true
+  if (err && /failed to fetch|networkerror|load failed/i.test(err.message || '')) return true
   return status === 502 || status === 503 || status === 504 || status === 429
 }
 
@@ -60,10 +65,11 @@ async function requestOnce(path, options = {}) {
     }
     return { data: payload, error: null, status: res.status }
   } catch (err) {
+    const raw = err.message || 'Could not reach the school database.'
     const message =
       err.name === 'AbortError'
         ? 'Could not reach the school database. Refresh and try again.'
-        : err.message || 'Could not reach the school database.'
+        : errorMessage(raw, 0)
     return { data: null, error: { message }, status: 0, err }
   } finally {
     clearTimeout(timer)
@@ -78,7 +84,7 @@ async function request(path, options = {}) {
     last = await requestOnce(path, options)
     if (!last.error) return { data: last.data, error: null }
     if (attempt < retries && shouldRetry(last.status, last.err)) {
-      await new Promise((r) => setTimeout(r, 400 * (attempt + 1)))
+      await new Promise((r) => setTimeout(r, 350 * (attempt + 1)))
       continue
     }
     return { data: null, error: last.error }

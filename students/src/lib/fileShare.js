@@ -35,3 +35,24 @@ export function unreadCount(announcements, role, id) {
 export function markAnnouncementsSeen(role, id) {
   try { localStorage.setItem(seenKey(role, id), new Date().toISOString()) } catch { /* ignore */ }
 }
+
+export function homeworkSeenKey(id) {
+  return `nfc-homework-seen-student-${id}`
+}
+
+export function unreadHomeworkCount(homework, id) {
+  try {
+    const seen = localStorage.getItem(homeworkSeenKey(id)) || ''
+    return (homework || []).filter((item) => String(item.createdAt || '') > seen).length
+  } catch {
+    return (homework || []).length
+  }
+}
+
+export function markHomeworkSeen(id) {
+  try {
+    localStorage.setItem(homeworkSeenKey(id), new Date().toISOString())
+  } catch {
+    /* ignore */
+  }
+}

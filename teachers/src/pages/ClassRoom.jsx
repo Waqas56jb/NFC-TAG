@@ -165,19 +165,17 @@ export function ClassRoom() {
   const sheetExists = Boolean(sheet)
 
   return (
-    <>
-      <div className="topbar">
-        <div>
-          <Crumbs
-            items={[
-              { label: t('crumbsClasses'), to: '/classes' },
-              { label: match.gradeName },
-              { label: t('sectionOf', { name: match.sectionName }) },
-            ]}
-          />
-          <h2>{t('classTitle', { grade: match.gradeName, section: match.sectionName })}</h2>
-          <p>{t('classLead')}</p>
-        </div>
+    <section className="app-screen classroom-screen">
+      <div className="page-head">
+        <Crumbs
+          items={[
+            { label: t('crumbsClasses'), to: '/classes' },
+            { label: match.gradeName },
+            { label: t('sectionOf', { name: match.sectionName }) },
+          ]}
+        />
+        <h2>{t('classTitle', { grade: match.gradeName, section: match.sectionName })}</h2>
+        <p className="muted">{t('classLead')}</p>
       </div>
 
       <div className="tabs">
@@ -197,6 +195,7 @@ export function ClassRoom() {
           gradeId={gradeId}
           sectionId={sectionId}
           teacherId={teacher?.id}
+          courseName={teacher?.subject || ''}
           listHomework={listHomework}
           createHomework={createHomework}
           deleteHomework={deleteHomework}
@@ -398,7 +397,7 @@ export function ClassRoom() {
         loadMessages={loadDmMessages}
         onPost={postDmMessage}
       />
-    </>
+    </section>
   )
 }
 

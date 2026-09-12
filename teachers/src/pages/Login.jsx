@@ -37,69 +37,61 @@ export function Login() {
   }
 
   return (
-    <div className="login-page">
-      <aside className="login-art" aria-hidden="true">
-        <div>
-          <div className="chalk" />
+    <div className="phone-stage login-stage">
+      <div className="phone-app login-app">
+        <section className="login-hero">
+          <div className="login-hero-top">
+            <div className="login-mark" aria-hidden="true">
+              <span />
+            </div>
+            <LanguageToggle compact />
+          </div>
+          <p className="app-kicker">{t('loginFoot')}</p>
           <h2>{t('loginTitle')}</h2>
           <p>{t('loginLead')}</p>
-        </div>
-        <p>{t('loginFoot')}</p>
-      </aside>
-
-      <main className="login-form-wrap">
-        <header className="login-mobile-head">
-          <div className="chalk sm" aria-hidden="true" />
-          <div>
-            <p className="login-kicker">{t('brand')}</p>
-            <h1>{t('signIn')}</h1>
+        </section>
+        <form className="login-sheet" onSubmit={onSubmit}>
+          <div className="login-sheet-body">
+            <h3>{t('signIn')}</h3>
+            <p className="muted login-hint">{t('loginHint')}</p>
+            <fieldset disabled={busy} className="modal-fields">
+              <Field label={t('email')}>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t('emailPlaceholder')}
+                  autoComplete="username"
+                  required
+                />
+              </Field>
+              <Field label={t('password')}>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t('yourPassword')}
+                  autoComplete="current-password"
+                  required
+                />
+              </Field>
+            </fieldset>
+            {error ? <div className="error">{error}</div> : null}
+            {bootError ? (
+              <div className="error">
+                {tx(bootError)}{' '}
+                <button className="ghost" type="button" onClick={boot} disabled={!ready || busy}>
+                  {t('tryAgain')}
+                </button>
+              </div>
+            ) : null}
           </div>
-          <LanguageToggle />
-        </header>
-
-        <form className="form-card" onSubmit={onSubmit}>
-          <div className="login-lang login-lang-desktop">
-            <LanguageToggle />
-          </div>
-          <h3 className="login-card-title">{t('signIn')}</h3>
-          <p className="muted">{t('loginHint')}</p>
-          <fieldset disabled={busy} className="modal-fields">
-            <Field label={t('email')}>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t('emailPlaceholder')}
-                autoComplete="username"
-                required
-              />
-            </Field>
-            <Field label={t('password')}>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t('yourPassword')}
-                autoComplete="current-password"
-                required
-              />
-            </Field>
-          </fieldset>
-          {error ? <div className="error">{error}</div> : null}
-          {bootError ? (
-            <div className="error">
-              {tx(bootError)}{' '}
-              <button className="ghost" type="button" onClick={boot} disabled={!ready || busy}>
-                {t('tryAgain')}
-              </button>
-            </div>
-          ) : null}
-          <button className={`primary login-submit${busy ? ' is-loading' : ''}`} type="submit" disabled={busy}>
+          <button className={`primary app-cta${busy ? ' is-loading' : ''}`} type="submit" disabled={busy}>
             {busy ? <span className="btn-spinner" aria-hidden="true" /> : null}
             <span>{busy ? t('signingIn') : t('enterDesk')}</span>
           </button>
         </form>
-      </main>
+      </div>
     </div>
   )
 }

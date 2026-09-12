@@ -253,14 +253,14 @@ select {
     margin-bottom: 8px;
   }
 
-  .field input,
-  .field textarea {
+  .login-page .field input,
+  .login-page .field textarea {
     min-height: 0;
     font-size: inherit;
     border-radius: 999px;
   }
 
-  .field textarea {
+  .login-page .field textarea {
     border-radius: 14px;
   }
 }
@@ -2281,11 +2281,12 @@ td.hot {
   cursor: pointer;
 }
 .wa-list-head {
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 .wa-list-head .wa-btn {
   flex-shrink: 0;
-  max-width: 9.5rem;
+  max-width: 100%;
 }
 .wa-photo-btn {
   max-width: 8.5rem;

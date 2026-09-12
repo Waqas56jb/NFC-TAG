@@ -14,7 +14,6 @@ export function Groups() {
     dmThreads,
     classTeachers,
     loadMessages,
-    postGroupMessage,
     loadDmMessages,
     postDmMessage,
     refreshDmThreads,
@@ -62,7 +61,7 @@ export function Groups() {
         </button>
       </div>
 
-      {mode === 'groups' ? (
+          {mode === 'groups' ? (
         <GroupBoard
           groups={groups}
           grades={grades}
@@ -72,7 +71,7 @@ export function Groups() {
           canDelete={false}
           canPost={false}
           loadMessages={loadMessages}
-          onPost={postGroupMessage}
+          onPost={async () => ({ ok: false, error: t('groupViewOnly') })}
         />
       ) : (
         <>

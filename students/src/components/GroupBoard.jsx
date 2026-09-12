@@ -134,16 +134,16 @@ export function GroupBoard({
   }
 
   return (
-    <div className={`wa-shell ${roomOpen ? 'room-open' : ''}`}>
+    <div className={`wa-shell${roomOpen ? ' room-open' : ''}${canPost ? '' : ' announce-only'}`}>
       <aside className="wa-list">
         <div className="wa-list-head">
-          <div>
+          <div className="wa-list-head-text">
             <p className="eyebrow">{t('groupsEyebrow')}</p>
             <h2>{t('groupsTitle')}</h2>
           </div>
           {canCreate ? (
-            <button className="primary" onClick={() => setOpen((v) => !v)}>
-              {t('createGroup')}
+            <button type="button" className="primary wa-btn wa-create-toggle" onClick={() => setOpen((v) => !v)}>
+              {open ? t('close') : t('createGroup')}
             </button>
           ) : null}
         </div>
@@ -212,22 +212,20 @@ export function GroupBoard({
               </div>
             </header>
 
-            <div className="wa-thread" ref={threadRef}>
+            <div className={`wa-thread${canPost ? '' : ' announce-feed'}`} ref={threadRef}>
               {messages.length === 0 ? (
                 <div className="wa-empty-chat">
                   <p>{t('noMessages')}</p>
                 </div>
               ) : (
                 messages.map((item) => {
-                  const mine = item.authorId === user.id
+                  const mine = canPost && item.authorId === user.id
                   return (
-                    <article key={item.id} className={`wa-bubble ${mine ? 'mine' : ''}`}>
-                      {!mine ? (
-                        <div className="wa-meta">
-                          <b>{cleanPersonName(item.authorName, item.authorRole) || roleLabel(item.authorRole, t)}</b>
-                          <span>{roleLabel(item.authorRole, t)}</span>
-                        </div>
-                      ) : null}
+                    <article key={item.id} className={`wa-bubble${mine ? ' mine' : ''}${canPost ? '' : ' announce-card'}`}>
+                      <div className="wa-meta">
+                        <b>{cleanPersonName(item.authorName, item.authorRole) || roleLabel(item.authorRole, t)}</b>
+                        <span>{roleLabel(item.authorRole, t)}</span>
+                      </div>
                       {item.body ? <p>{item.body}</p> : null}
                       {item.fileData ? <Attachment item={item} t={t} /> : null}
                       <div className="wa-bubble-foot">
@@ -302,7 +300,10 @@ export function GroupBoard({
                 {error ? <div className="error">{error}</div> : null}
               </form>
             ) : (
-              <div className="wa-readonly">{t('groupViewOnly')}</div>
+              <div className="wa-readonly announce-readonly" role="status">
+                <strong>{t('announceViewOnly')}</strong>
+                <p>{t('groupViewOnly')}</p>
+              </div>
             )}
           </>
         ) : (

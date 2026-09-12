@@ -177,9 +177,9 @@ export function createNftagApi(supabase) {
         rest.get('nfctag_activities', '?select=*&order=at.desc&limit=80'),
       ])
 
-    const firstError = [madams, subs, teachers, grades, sections, students, assignments, activities]
-      .find((res) => res.error)?.error
-    if (firstError) throw firstError
+    const critical = [madams, subs, teachers, grades, sections, students, assignments]
+      .find((res) => res.error)
+    if (critical?.error) throw critical.error
 
     const madamRows = (madams.data || []).map(mapMadam)
     const currentMadam =
@@ -193,8 +193,8 @@ export function createNftagApi(supabase) {
       grades: nestGrades(grades.data || [], sections.data || []),
       students: (students.data || []).map(mapStudent),
       assignments: (assignments.data || []).map(mapAssignment),
-      attendance: (attendance.data || []).map(mapAttendance),
-      activities: (activities.data || []).map(mapActivity),
+      attendance: attendance.error ? [] : (attendance.data || []).map(mapAttendance),
+      activities: activities.error ? [] : (activities.data || []).map(mapActivity),
     }
   }
 

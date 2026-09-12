@@ -9,7 +9,7 @@ import './app-mobile.css'
 const rootEl = document.getElementById('root')
 if (!rootEl) {
   document.body.innerHTML =
-    '<main style="font-family:system-ui;padding:2rem;max-width:28rem;margin:auto"><h1>NFC Tag</h1><p>App shell failed to load. Please refresh.</p></main>'
+    '<main style="font-family:system-ui;padding:2rem;max-width:28rem;margin:auto"><h1>Aman</h1><p>App shell failed to load. Please refresh.</p></main>'
 } else {
   createRoot(rootEl).render(
     <StrictMode>

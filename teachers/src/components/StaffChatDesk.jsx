@@ -225,8 +225,8 @@ export function StaffChatDesk({
         {mode === 'browse' ? (
           <aside className="staff-chat-col staff-chat-students">
             <div className="staff-chat-col-head">
-              <button type="button" className="ghost wa-btn staff-chat-back" onClick={() => setMobilePane('sections')}>
-                {t('back')}
+              <button type="button" className="wa-back staff-chat-back" aria-label={t('back')} onClick={() => setMobilePane('sections')}>
+                ‹
               </button>
               <strong>{activeCard ? t('classTitle', { grade: activeCard.gradeName, section: activeCard.sectionName }) : t('chatStudents')}</strong>
               <p className="muted">{t('chatStudentsHint')}</p>
@@ -269,9 +269,14 @@ export function StaffChatDesk({
         ) : null}
 
         <section className="staff-chat-col staff-chat-room">
-          <div className="staff-chat-col-head room-head">
-            <button type="button" className="ghost wa-btn staff-chat-back" onClick={() => setMobilePane(mode === 'browse' ? 'students' : 'sections')}>
-              {t('back')}
+          <header className="wa-room-head staff-chat-room-head">
+            <button
+              type="button"
+              className="wa-back"
+              aria-label={t('back')}
+              onClick={() => setMobilePane(mode === 'browse' ? 'students' : 'sections')}
+            >
+              ‹
             </button>
             {student ? (
               <>
@@ -282,7 +287,7 @@ export function StaffChatDesk({
                 />
                 <div className="wa-room-title">
                   <strong>{student.name}</strong>
-                  <p className="muted">{t('dmStaffHint')}</p>
+                  <p className="muted">{t('dmStaffHintShort')}</p>
                 </div>
               </>
             ) : (
@@ -291,7 +296,7 @@ export function StaffChatDesk({
                 <p className="muted">{t('chatPickStudentHint')}</p>
               </div>
             )}
-          </div>
+          </header>
 
           <div className="staff-chat-thread">
             {!student ? (
@@ -321,30 +326,51 @@ export function StaffChatDesk({
 
           {student && thread ? (
             <form className="wa-composer staff-chat-composer" onSubmit={send}>
-              <input value={text} onChange={(e) => setText(e.target.value)} placeholder={t('writeMessage')} />
-              <label className="ghost wa-btn attach">
-                {file ? file.fileName : t('attach')}
+              {file ? (
+                <div className="wa-attach-chip">
+                  <span>{file.fileName}</span>
+                  <button type="button" aria-label={t('cancel')} onClick={() => setFile(null)}>
+                    ×
+                  </button>
+                </div>
+              ) : null}
+              <div className="wa-composer-row">
+                <label className="wa-attach-btn" title={t('attach')}>
+                  <span className="visually-hidden">{t('attach')}</span>
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true">
+                    <path d="M21.4 11.6 12.1 20.9a5.2 5.2 0 0 1-7.4-7.4l9.9-9.9a3.5 3.5 0 0 1 4.9 4.9l-9.9 9.9a1.7 1.7 0 1 1-2.4-2.4l8.5-8.5" />
+                  </svg>
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx"
+                    onChange={async (e) => {
+                      const picked = e.target.files?.[0]
+                      e.target.value = ''
+                      if (!picked) return
+                      try {
+                        setFile(await readShareFile(picked))
+                        setError('')
+                      } catch (err) {
+                        setError(tx(err.message))
+                      }
+                    }}
+                  />
+                </label>
                 <input
-                  type="file"
-                  hidden
-                  accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx"
-                  onChange={async (e) => {
-                    const picked = e.target.files?.[0]
-                    e.target.value = ''
-                    if (!picked) return
-                    try {
-                      setFile(await readShareFile(picked))
-                      setError('')
-                    } catch (err) {
-                      setError(tx(err.message))
-                    }
-                  }}
+                  className="wa-input"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder={t('writeMessage')}
                 />
-              </label>
-              <button className={`primary wa-btn${sending ? ' is-loading' : ''}`} type="submit" disabled={sending || !thread}>
-                {sending ? <span className="btn-spinner" aria-hidden="true" /> : null}
-                <span>{sending ? t('working') : t('send')}</span>
-              </button>
+                <button
+                  className={`wa-send${sending ? ' is-loading' : ''}`}
+                  type="submit"
+                  disabled={sending || !thread || (!text.trim() && !file)}
+                >
+                  {sending ? <span className="btn-spinner" aria-hidden="true" /> : <span>{t('send')}</span>}
+                </button>
+              </div>
               {error ? <div className="error">{error}</div> : null}
             </form>
           ) : null}

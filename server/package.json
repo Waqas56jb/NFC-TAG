@@ -16,6 +16,7 @@
     "db:desk": "node scripts/setup-teacher-desk.mjs",
     "db:student-leaves": "node scripts/setup-student-leaves.mjs",
     "db:student-tags": "node scripts/setup-student-tags.mjs",
+    "db:homework": "node scripts/setup-homework.mjs",
     "db:aman-seed": "node scripts/seed-aman-public-private.mjs",
     "db:wipe": "node scripts/wipe-nfctag-data.mjs",
     "db:test-accounts": "node scripts/seed-test-accounts.mjs",
