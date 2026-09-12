@@ -1893,6 +1893,20 @@ html[dir="rtl"] .kpi-days {
   transform: translateY(1px);
 }
 
+.pf-nfc-url {
+  position: relative;
+  z-index: 1;
+  margin: 12px 16px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #d7e0da;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  word-break: break-all;
+  text-align: center;
+}
+
 .pf-nfc-msg {
   position: relative;
   z-index: 1;

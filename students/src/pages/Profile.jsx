@@ -3,7 +3,7 @@ import { useStudent } from '../context/StudentContext'
 import { useI18n } from '../i18n/I18nContext'
 import { genderLabel } from '../i18n/helpers'
 import { displayPhoto } from '../lib/avatar'
-import { downloadNfcTag } from '../lib/nfcTag'
+import { copyStudentTagUrl, studentPublicUrl } from '../lib/nfcTag'
 import { classLabel, prettyDate } from '../lib/school'
 
 function Row({ label, value, href }) {
@@ -53,18 +53,20 @@ export function Profile() {
   const portrait = displayPhoto(student.photo, student.name, student.id || student.email)
   const initial = (student.name || '?').trim().charAt(0).toUpperCase()
 
-  async function handleDownloadTag() {
+  async function handleCopyNfcLink() {
     setTagBusy(true)
     setTagMsg('')
     try {
-      await downloadNfcTag(student)
-      setTagMsg(t('toastNfcDownloaded'))
+      await copyStudentTagUrl(student)
+      setTagMsg(t('toastNfcCopied'))
     } catch (err) {
-      setTagMsg(err.message || t('errNfcDownload'))
+      setTagMsg(err.message || t('errNfcCopy'))
     } finally {
       setTagBusy(false)
     }
   }
+
+  const nfcUrl = studentPublicUrl(student)
 
   return (
     <section className="app-screen pf-screen">
@@ -77,8 +79,13 @@ export function Profile() {
         <h2>{student.name}</h2>
         <p className="pf-class">{klass || t('studentRole')}</p>
         <p className="pf-note">{t('profileReadOnly')}</p>
-        <button className="pf-nfc-btn" type="button" disabled={tagBusy} onClick={handleDownloadTag}>
-          {tagBusy ? t('downloadingNfc') : t('downloadNfcTag')}
+        {nfcUrl ? (
+          <p className="pf-nfc-url" title={nfcUrl}>
+            {nfcUrl}
+          </p>
+        ) : null}
+        <button className="pf-nfc-btn" type="button" disabled={tagBusy || !nfcUrl} onClick={handleCopyNfcLink}>
+          {tagBusy ? t('copyingNfc') : t('copyNfcLink')}
         </button>
         {tagMsg ? <p className="pf-nfc-msg">{tagMsg}</p> : null}
       </article>

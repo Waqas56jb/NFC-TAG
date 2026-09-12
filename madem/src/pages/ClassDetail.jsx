@@ -8,7 +8,7 @@ import { StaffDmModal } from '../components/StaffDmModal'
 import { StudentForm, StudentView } from '../components/StudentForm'
 import { useApp } from '../context/AppContext'
 import { useI18n } from '../i18n/I18nContext'
-import { downloadNfcTag, copyStudentTagUrl } from '../lib/nfcTag'
+import { copyStudentTagUrl } from '../lib/nfcTag'
 import { resolveClassRoute } from '../lib/school'
 import { emptyStudent, studentFromRecord } from '../lib/studentFields'
 
@@ -74,24 +74,19 @@ export function ClassDetail() {
     setForm(emptyStudent)
     setError('')
     if (!editing && result.student) {
-      await handleDownloadTag(result.student)
+      await handleCopyNfcLink(result.student)
       setViewing(result.student)
     }
   }
 
-  async function handleDownloadTag(student) {
+  async function handleCopyNfcLink(student) {
     if (!student?.id) return
     setTagBusyId(student.id)
     try {
-      await downloadNfcTag(student)
-      try {
-        await copyStudentTagUrl(student)
-      } catch {
-        /* clipboard optional */
-      }
-      notify?.(t('toastNfcDownloaded'))
+      await copyStudentTagUrl(student)
+      notify?.(t('toastNfcCopied'))
     } catch (err) {
-      notify?.(err.message || t('errNfcDownload'), 'bad')
+      notify?.(err.message || t('errNfcCopy'), 'bad')
     } finally {
       setTagBusyId('')
     }
@@ -195,9 +190,9 @@ export function ClassDetail() {
                         className="ghost"
                         type="button"
                         disabled={tagBusyId === student.id}
-                        onClick={() => handleDownloadTag(student)}
+                        onClick={() => handleCopyNfcLink(student)}
                       >
-                        {tagBusyId === student.id ? t('downloadingNfc') : t('downloadNfcTag')}
+                        {tagBusyId === student.id ? t('copyingNfc') : t('copyNfcLink')}
                       </button>
                       <button className="ghost" onClick={() => openEdit(student)}>
                         {t('edit')}
@@ -260,9 +255,9 @@ export function ClassDetail() {
               className="ghost"
               type="button"
               disabled={tagBusyId === viewing.id}
-              onClick={() => handleDownloadTag(viewing)}
+              onClick={() => handleCopyNfcLink(viewing)}
             >
-              {tagBusyId === viewing.id ? t('downloadingNfc') : t('downloadNfcTag')}
+              {tagBusyId === viewing.id ? t('copyingNfc') : t('copyNfcLink')}
             </button>
             <button className="primary" type="button" onClick={() => openEdit(viewing)}>
               {t('editThisStudent')}
