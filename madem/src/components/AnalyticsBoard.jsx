@@ -202,8 +202,8 @@ export function AnalyticsBoard({
               <Donut
                 t={t}
                 slices={[
-                  { id: 'present', value: data.counts.present, color: '#2f6f4e' },
-                  { id: 'absent', value: data.counts.absent, color: '#9a2e2e' },
+                  { id: 'present', value: data.counts.present, color: '#3e8e6c' },
+                  { id: 'absent', value: data.counts.absent, color: '#c2564b' },
                   { id: 'leaves', value: data.leaves, color: '#c47a3a' },
                 ]}
               />
@@ -295,7 +295,7 @@ function Donut({ slices, t }) {
   return (
     <div className="donut-wrap">
       <svg viewBox={`0 0 ${size} ${size}`} className="donut" aria-hidden="true">
-        <circle cx="98" cy="98" r={r} fill="none" stroke="#f3ead8" strokeWidth="22" />
+        <circle cx="98" cy="98" r={r} fill="none" stroke="#e3edf7" strokeWidth="22" />
         {slices.map((slice) => {
           const len = (slice.value / total) * c
           const dash = `${len} ${c - len}`
@@ -356,8 +356,8 @@ function TrendChart({ rows, t }) {
           const leaveH = (row.leaves / max) * innerH
           let y = height - pad.b
           const stacks = [
-            { h: presentH, color: '#2f6f4e' },
-            { h: absentH, color: '#9a2e2e' },
+            { h: presentH, color: '#3e8e6c' },
+            { h: absentH, color: '#c2564b' },
             { h: leaveH, color: '#c47a3a' },
           ]
           return (
@@ -375,11 +375,11 @@ function TrendChart({ rows, t }) {
       </svg>
       <ul className="legend compact">
         <li>
-          <i style={{ background: '#2f6f4e' }} />
+          <i style={{ background: '#3e8e6c' }} />
           {t('kpiPresent')}
         </li>
         <li>
-          <i style={{ background: '#9a2e2e' }} />
+          <i style={{ background: '#c2564b' }} />
           {t('kpiAbsent')}
         </li>
         <li>
