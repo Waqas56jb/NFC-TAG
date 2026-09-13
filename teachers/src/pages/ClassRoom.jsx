@@ -8,9 +8,17 @@ import { useTeacher } from '../context/TeacherContext'
 import { useI18n } from '../i18n/I18nContext'
 import { genderLabel } from '../i18n/helpers'
 import { ATTENDANCE_STATUSES, prettyDate, resolveClassRoute, todayKey } from '../lib/school'
+import { OUT_STATUSES } from '../lib/studentLeave'
 
 function statusKey(id) {
   return `status_${String(id).replaceAll('-', '_')}`
+}
+
+function isStudentOut(leave) {
+  if (!leave) return false
+  if (leave.returnedAt || leave.status === 'returned' || leave.status === 'rejected') return false
+  if (leave.leaveType === 'leave_school' && leave.status === 'pending') return false
+  return OUT_STATUSES.includes(leave.status) || Boolean(leave.leftAt)
 }
 
 function StudentFace({ student }) {
@@ -65,7 +73,7 @@ export function ClassRoom() {
   const { gradeSlug, sectionSlug } = useParams()
   const location = useLocation()
   const { t, lang } = useI18n()
-  const { school, teacher, canOpen, saveAttendance, openDmThread, loadDmMessages, postDmMessage, listHomework, createHomework, deleteHomework } = useTeacher()
+  const { school, teacher, canOpen, saveAttendance, openDmThread, loadDmMessages, postDmMessage, listHomework, createHomework, deleteHomework, studentLeaves, toggleStudentRestroom } = useTeacher()
   const match = resolveClassRoute(school.grades, gradeSlug, sectionSlug)
   const gradeId = match?.gradeId
   const sectionId = match?.sectionId
@@ -78,7 +86,24 @@ export function ClassRoom() {
   const [creating, setCreating] = useState(false)
   const [saving, setSaving] = useState(false)
   const [statusFilter, setStatusFilter] = useState('all')
+  const [leaveBusyId, setLeaveBusyId] = useState('')
   const [notice, setNotice] = useState('')
+
+  const outByStudent = useMemo(() => {
+    const map = new Map()
+    for (const leave of studentLeaves || []) {
+      if (!isStudentOut(leave)) continue
+      if (!map.has(leave.studentId)) map.set(leave.studentId, leave)
+    }
+    return map
+  }, [studentLeaves])
+
+  async function onRestroomToggle(student) {
+    if (!student?.id || leaveBusyId) return
+    setLeaveBusyId(student.id)
+    await toggleStudentRestroom(student.id)
+    setLeaveBusyId('')
+  }
 
   const allowed = gradeId && sectionId ? canOpen(gradeId, sectionId) : false
   const students = useMemo(
@@ -243,12 +268,32 @@ export function ClassRoom() {
                         <td data-label={t('colParentPhone')}>{student.parentPhone || '—'}</td>
                         <td data-label={t('colNic')}>{student.nic || '—'}</td>
                         <td data-label={t('colActions')}>
-                          <div className="row-actions">
+                          <div className="row-actions student-leave-actions">
+                            <button
+                              type="button"
+                              className={`ghost restroom-btn${outByStudent.has(student.id) ? ' is-out' : ''}`}
+                              disabled={leaveBusyId === student.id}
+                              onClick={() => onRestroomToggle(student)}
+                            >
+                              {leaveBusyId === student.id
+                                ? t('working')
+                                : outByStudent.has(student.id)
+                                  ? t('restroomReturnBtn')
+                                  : t('restroomBtn')}
+                            </button>
                             <ChatIconButton label={t('message')} onClick={() => setMessaging(student)} />
                             <button className="ghost" onClick={() => setViewing(student)}>
                               {t('view')}
                             </button>
                           </div>
+                          {outByStudent.has(student.id) ? (
+                            <p className="muted restroom-out-note">
+                              {t('restroomOutBadge')}
+                              {outByStudent.get(student.id)?.leftAt
+                                ? ` · ${new Date(outByStudent.get(student.id).leftAt).toLocaleTimeString(lang === 'ar' ? 'ar' : 'en', { hour: '2-digit', minute: '2-digit' })}`
+                                : ''}
+                            </p>
+                          ) : null}
                         </td>
                       </tr>
                     ))}
@@ -374,6 +419,18 @@ export function ClassRoom() {
             <div className="modal-actions">
               <button className="ghost" onClick={() => setViewing(null)}>
                 {t('close')}
+              </button>
+              <button
+                type="button"
+                className={`ghost restroom-btn${outByStudent.has(viewing.id) ? ' is-out' : ''}`}
+                disabled={leaveBusyId === viewing.id}
+                onClick={() => onRestroomToggle(viewing)}
+              >
+                {leaveBusyId === viewing.id
+                  ? t('working')
+                  : outByStudent.has(viewing.id)
+                    ? t('restroomReturnBtn')
+                    : t('restroomBtn')}
               </button>
               <ChatIconButton
                 className="lg"

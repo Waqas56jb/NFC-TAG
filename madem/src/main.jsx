@@ -4,6 +4,7 @@ import App from './App.jsx'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 import { I18nProvider } from './i18n/I18nContext'
 import './index.css'
+import './principal-responsive.css'
 
 const rootEl = document.getElementById('root')
 if (!rootEl) {

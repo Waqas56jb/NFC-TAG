@@ -203,6 +203,24 @@ export function TeacherProvider({ children }) {
           return result
         })
       },
+      async toggleStudentRestroom(studentId) {
+        if (!teacher) return { ok: false, error: t('errSignIn') }
+        return withBusy(async () => {
+          const result = await hub.recordStudentLeaveById(
+            studentId,
+            { leaveType: 'restroom' },
+            { ...teacher, role: 'teacher' },
+          )
+          if (!result.ok) { notify(tx(result.error), 'bad'); return result }
+          await refreshDesk(teacher.id)
+          notify(
+            result.action === 'returned'
+              ? t('nfcLeaveReturnedToast', { name: result.student?.name || '' })
+              : t('restroomOutToast', { name: result.student?.name || '' }),
+          )
+          return result
+        })
+      },
       async createGroup(payload) {
         if (!teacher) return { ok: false, error: t('errSignIn') }
         return withBusy(async () => {

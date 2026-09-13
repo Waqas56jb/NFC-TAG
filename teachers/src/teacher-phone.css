@@ -1196,11 +1196,32 @@ body {
   font-size: 0.78rem;
 }
 
-.phone-app .homework-list {
+.phone-app .student-leave-actions {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.phone-app .restroom-btn {
+  min-height: 40px;
+  padding: 8px 12px;
+  font-weight: 700;
+  color: #1c2a22 !important;
+  background: #e8f3ec !important;
+  box-shadow: inset 0 0 0 1.5px rgba(47, 111, 78, 0.35) !important;
+}
+
+.phone-app .restroom-btn.is-out {
+  background: #f6e4df !important;
+  color: #9a2e2e !important;
+  box-shadow: inset 0 0 0 1.5px rgba(180, 60, 50, 0.4) !important;
+}
+
+.phone-app .restroom-out-note {
+  margin: 6px 0 0;
+  font-size: 0.75rem;
+  color: #9a2e2e;
 }
 
 .phone-app .classroom-screen {

@@ -97,7 +97,7 @@ async function classNames(rest, gradeId, sectionId) {
 }
 
 export function createStudentLeaveApi(rest) {
-  return {
+  const api = {
     async listStudentLeaves({ studentId, gradeId, sectionId, status } = {}) {
       let q = '?select=*&order=created_at.desc&limit=400'
       if (studentId) q += `&student_id=eq.${encodeURIComponent(studentId)}`
@@ -118,7 +118,28 @@ export function createStudentLeaveApi(rest) {
       if (!user?.id) return { ok: false, error: 'Sign in first.' }
       const found = await resolveStudentByTag(rest, rawInput)
       if (!found.ok) return found
-      const { student } = found
+      return api.recordStudentLeaveById(found.student.id, { leaveType, note }, user, found.student)
+    },
+
+    /**
+     * Teacher taps a student in class (or NFC):
+     * - If currently out → mark returned with timestamp
+     * - Else → log left class now (default restroom)
+     */
+    async recordStudentLeaveById(studentId, { leaveType = 'restroom', note = '' } = {}, user, knownStudent = null) {
+      if (!user?.id) return { ok: false, error: 'Sign in first.' }
+      if (!studentId) return { ok: false, error: 'Student required.' }
+
+      let student = knownStudent
+      if (!student) {
+        const res = await rest.get(
+          'nfctag_students',
+          `?select=*&id=eq.${encodeURIComponent(studentId)}&limit=1`,
+        )
+        if (res.error) return { ok: false, error: res.error.message }
+        student = mapStudent((res.data || [])[0])
+      }
+      if (!student) return { ok: false, error: 'Student not found.' }
 
       const openRes = await rest.get(
         'nfctag_student_leaves',
@@ -153,8 +174,7 @@ export function createStudentLeaveApi(rest) {
         }
       }
 
-      // NFC logs in-school movement only — leave school is a parent/student request.
-      const type = MOVEMENT_TYPES.some((t) => t.id === leaveType) ? leaveType : 'other'
+      const type = MOVEMENT_TYPES.some((t) => t.id === leaveType) ? leaveType : 'restroom'
       const { gradeName, sectionName } = await classNames(rest, student.gradeId, student.sectionId)
       const now = new Date().toISOString()
       const res = await rest.insert('nfctag_student_leaves', {
@@ -314,4 +334,5 @@ export function createStudentLeaveApi(rest) {
       return { ok: true }
     },
   }
+  return api
 }

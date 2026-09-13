@@ -19,6 +19,7 @@
     "db:homework": "node scripts/setup-homework.mjs",
     "db:aman-seed": "node scripts/seed-aman-public-private.mjs",
     "db:wipe": "node scripts/wipe-nfctag-data.mjs",
+    "db:clean-start": "node scripts/wipe-nfctag-data.mjs && node scripts/seed-clean-start.mjs",
     "db:test-accounts": "node scripts/seed-test-accounts.mjs",
     "db:seed-five": "node scripts/seed-five-each.mjs"
   },
