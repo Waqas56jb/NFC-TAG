@@ -632,17 +632,33 @@ a.danger {
   border-radius: 999px;
 }
 
+.tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
 .tab-count {
-  display: inline-grid;
-  place-items: center;
-  min-width: 18px;
-  height: 18px;
-  margin-inline-start: 6px;
-  border-radius: 99px;
-  background: #c2564b;
-  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  margin-inline-start: 0;
+  border-radius: 999px;
+  background: #e24b42;
+  color: #fff !important;
+  font-family: Manrope, Cairo, sans-serif;
   font-size: 0.68rem;
+  font-weight: 800;
   font-style: normal;
+  line-height: 1;
+  letter-spacing: 0;
+  flex: 0 0 auto;
+  box-shadow: 0 0 0 2px #ffffff;
 }
 
 .search {
@@ -2966,6 +2982,7 @@ td.hot {
   flex-shrink: 0;
 }
 .groups-switch button {
+  position: relative;
   border: 0;
   background: transparent;
   border-radius: 10px;
@@ -2977,12 +2994,19 @@ td.hot {
   color: #5b708a;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
 }
 .groups-switch button.on {
   background: var(--navy);
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(30, 58, 95, 0.24);
+}
+.groups-switch button.on .tab-count,
+.staff-chat-tabs button.on .tab-count,
+.tabs button.primary .tab-count {
+  box-shadow: 0 0 0 2px var(--navy, #1e3a5f);
 }
 .groups-page .wa-shell,
 .groups-page .staff-chat-desk {
@@ -3019,7 +3043,8 @@ td.hot {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  white-space: nowrap;
 }
 .staff-chat-tabs button.on {
   background: var(--navy, #1e3a5f);
@@ -3679,4 +3704,16 @@ html {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+.login-art,
+.login-art h1,
+.login-art h2,
+.login-art h3,
+.login-art p {
+  color: #ffffff;
+}
+
+.login-art p {
+  color: #e4ecf5;
 }

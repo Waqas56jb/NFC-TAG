@@ -2549,21 +2549,37 @@ html[dir="rtl"] .pf-link {
   box-shadow: 0 4px 14px rgba(30, 58, 95, 0.08);
 }
 
-.groups-switch button i {
-  position: absolute;
-  top: 6px;
-  inset-inline-end: 10px;
-  min-width: 18px;
-  height: 18px;
+.groups-switch button:has(.tab-count),
+.groups-switch button:has(i) {
+  padding-inline-end: 16px;
+}
+
+.groups-switch button i,
+.groups-switch .tab-count,
+.staff-chat-tabs .tab-count {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.2rem;
+  height: 1.2rem;
   padding: 0 5px;
+  margin: 0;
   border-radius: 999px;
-  background: #e79f97;
-  color: #fff;
+  background: #e24b42;
+  color: #fff !important;
   font-style: normal;
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  display: grid;
-  place-items: center;
+  line-height: 1;
+  flex: 0 0 auto;
+  box-shadow: 0 0 0 2px #ffffff;
+}
+
+.groups-switch button.on i,
+.groups-switch button.on .tab-count,
+.staff-chat-tabs button.on .tab-count {
+  box-shadow: 0 0 0 2px #1e3a5f;
 }
 
 .gs-ico {

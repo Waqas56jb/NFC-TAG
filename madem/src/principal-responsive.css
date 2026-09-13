@@ -25,6 +25,13 @@
   .groups-switch button {
     justify-content: center;
     min-height: 44px;
+    padding-inline: 10px 16px;
+    white-space: nowrap;
+  }
+
+  .groups-switch .tab-count,
+  .staff-chat-tabs .tab-count {
+    position: static;
   }
 
   .groups-page .wa-shell,
