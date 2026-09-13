@@ -14,6 +14,8 @@ export const emptyStudent = {
   emergencyPhone: '',
   notes: '',
   photo: '',
+  loginUsername: '',
+  loginPassword: '',
 }
 
 export function studentFromRecord(student) {
@@ -34,5 +36,7 @@ export function studentFromRecord(student) {
     emergencyPhone: student.emergencyPhone || '',
     notes: student.notes || '',
     photo: student.photo || '',
+    loginUsername: student.loginEmail || '',
+    loginPassword: student.loginPassword || '',
   }
 }

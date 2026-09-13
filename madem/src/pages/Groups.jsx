@@ -22,6 +22,7 @@ export function Groups() {
   const { t } = useI18n()
   const [tab, setTab] = useState('groups')
   const [threads, setThreads] = useState([])
+  const [pendingStudent, setPendingStudent] = useState(null)
 
   const staffRole = user?.role === 'sub' ? 'sub' : 'madam'
 
@@ -34,6 +35,12 @@ export function Groups() {
   useEffect(() => {
     if (tab === 'dm') refreshThreads()
   }, [tab, refreshThreads])
+
+  function messageStudent(student) {
+    if (!student) return
+    setPendingStudent(student)
+    setTab('dm')
+  }
 
   return (
     <section className="groups-page">
@@ -51,6 +58,7 @@ export function Groups() {
         <GroupBoard
           groups={groups}
           grades={store.grades || []}
+          students={store.students || []}
           user={user}
           canCreate
           canDelete
@@ -61,6 +69,7 @@ export function Groups() {
           onUpdatePhoto={updateGroupPhoto}
           onPost={postGroupMessage}
           onDelete={deleteGroupMessage}
+          onMessageStudent={messageStudent}
         />
       ) : (
         <StaffChatDesk
@@ -72,6 +81,8 @@ export function Groups() {
           loadMessages={loadDmMessages}
           onPost={postDmMessage}
           onThreadsRefresh={refreshThreads}
+          initialStudent={pendingStudent}
+          onInitialStudentConsumed={() => setPendingStudent(null)}
         />
       )}
     </section>

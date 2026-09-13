@@ -16,7 +16,7 @@ function Field({ label, children }) {
 export function Login() {
   const { teacher, login, bootError, boot, ready } = useTeacher()
   const { t, tx } = useI18n()
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -29,7 +29,7 @@ export function Login() {
     setBusy(true)
     setError('')
     try {
-      const result = await login(email, password)
+      const result = await login(username, password)
       if (!result.ok) setError(tx(result.error))
     } finally {
       setBusy(false)
@@ -55,13 +55,15 @@ export function Login() {
             <h3>{t('signIn')}</h3>
             <p className="muted login-hint">{t('loginHint')}</p>
             <fieldset disabled={busy} className="modal-fields">
-              <Field label={t('email')}>
+              <Field label={t('username')}>
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t('emailPlaceholder')}
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder={t('usernamePlaceholder')}
                   autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   required
                 />
               </Field>

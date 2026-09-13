@@ -195,11 +195,14 @@ export function Teachers() {
               required
             />
           </Field>
-          <Field label={t('loginEmail')}>
+          <Field label={t('username')}>
             <input
-              type="email"
+              type="text"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
+              placeholder={t('usernamePlaceholder')}
+              autoCapitalize="none"
+              spellCheck={false}
               required
             />
           </Field>

@@ -203,12 +203,12 @@ export function TeacherProvider({ children }) {
           return result
         })
       },
-      async toggleStudentRestroom(studentId) {
+      async toggleStudentRestroom(studentId, leaveType = 'restroom') {
         if (!teacher) return { ok: false, error: t('errSignIn') }
         return withBusy(async () => {
           const result = await hub.recordStudentLeaveById(
             studentId,
-            { leaveType: 'restroom' },
+            { leaveType: leaveType || 'restroom' },
             { ...teacher, role: 'teacher' },
           )
           if (!result.ok) { notify(tx(result.error), 'bad'); return result }
@@ -216,7 +216,9 @@ export function TeacherProvider({ children }) {
           notify(
             result.action === 'returned'
               ? t('nfcLeaveReturnedToast', { name: result.student?.name || '' })
-              : t('restroomOutToast', { name: result.student?.name || '' }),
+              : leaveType === 'restroom'
+                ? t('restroomOutToast', { name: result.student?.name || '' })
+                : t('nfcLeaveOutToast', { name: result.student?.name || '' }),
           )
           return result
         })

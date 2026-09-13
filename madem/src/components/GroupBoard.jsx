@@ -14,6 +14,7 @@ function GroupAvatar({ group }) {
 export function GroupBoard({
   groups,
   grades,
+  students = [],
   allowedCards = null,
   user,
   canCreate = false,
@@ -25,6 +26,7 @@ export function GroupBoard({
   onPost,
   onDelete,
   onUpdatePhoto,
+  onMessageStudent,
 }) {
   const { t, lang, tx } = useI18n()
   const cards = allowedCards || listClassCards(grades)
@@ -75,6 +77,17 @@ export function GroupBoard({
     })
     return [...seen.entries()].map(([id, name]) => ({ id, name }))
   }, [cards])
+
+  const gradeStudents = useMemo(() => {
+    if (!form.gradeId) return []
+    return (students || [])
+      .filter((s) => {
+        if (s.gradeId !== form.gradeId) return false
+        if (form.sectionId && s.sectionId !== form.sectionId) return false
+        return true
+      })
+      .sort((a, b) => String(a.name).localeCompare(String(b.name)))
+  }, [students, form.gradeId, form.sectionId])
 
   async function send(e) {
     e.preventDefault()
@@ -192,6 +205,40 @@ export function GroupBoard({
                 </option>
               ))}
             </select>
+
+            {form.gradeId ? (
+              <div className="wa-create-students">
+                <p className="wa-create-students-title">{t('pickChildFromClass')}</p>
+                <p className="muted">{t('pickChildFromClassHint')}</p>
+                {gradeStudents.length === 0 ? (
+                  <div className="empty soft">{t('noStudentsClass')}</div>
+                ) : (
+                  <div className="wa-create-student-list">
+                    {gradeStudents.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        className="wa-create-student-row"
+                        onClick={() => onMessageStudent?.(s)}
+                      >
+                        <img
+                          className="wa-avatar"
+                          src={displayPhoto(s.photo, s.name, s.id || s.name)}
+                          alt=""
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                        />
+                        <span className="wa-chat-text">
+                          <b>{s.name}</b>
+                          <small>{s.rollNo ? `${t('rollNo')}: ${s.rollNo}` : t('studentRole')}</small>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : null}
+
             <button className={`primary wa-btn${creating ? ' is-loading' : ''}`} type="submit" disabled={creating}>
               {creating ? <span className="btn-spinner" aria-hidden="true" /> : null}
               <span>{creating ? t('working') : t('createGroup')}</span>

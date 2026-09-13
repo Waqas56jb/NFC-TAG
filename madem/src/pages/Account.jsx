@@ -59,11 +59,14 @@ export function Account() {
               required
             />
           </Field>
-          <Field label={t('email')}>
+          <Field label={t('username')}>
             <input
-              type="email"
+              type="text"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
+              placeholder={t('usernamePlaceholder')}
+              autoCapitalize="none"
+              spellCheck={false}
               required
             />
           </Field>

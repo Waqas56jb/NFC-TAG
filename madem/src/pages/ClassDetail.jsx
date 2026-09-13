@@ -69,13 +69,25 @@ export function ClassDetail() {
       setError(tx(result.error))
       return
     }
+    const editedId = editing?.id
     setFormOpen(false)
     setEditing(null)
     setForm(emptyStudent)
     setError('')
-    if (!editing && result.student) {
+    if (!editedId && result.student) {
       await handleCopyNfcLink(result.student)
       setViewing(result.student)
+      return
+    }
+    if (editedId) {
+      setViewing(
+        result.student || {
+          ...editing,
+          ...form,
+          loginEmail: String(form.loginUsername || form.loginEmail || '').trim().toLowerCase(),
+          loginPassword: form.loginPassword,
+        },
+      )
     }
   }
 
@@ -244,7 +256,7 @@ export function ClassDetail() {
           hint={t('classTitle', { grade: grade.name, section: section.name })}
           onClose={() => setViewing(null)}
         >
-          <StudentView student={viewing} />
+          <StudentView student={viewing} onEditLogin={() => openEdit(viewing)} />
           <div className="modal-actions" style={{ paddingTop: 0 }}>
             <ChatIconButton
               className="lg"

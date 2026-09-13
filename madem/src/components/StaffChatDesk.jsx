@@ -32,6 +32,8 @@ export function StaffChatDesk({
   loadMessages,
   onPost,
   onThreadsRefresh,
+  initialStudent = null,
+  onInitialStudentConsumed,
 }) {
   const { t, lang, tx } = useI18n()
   const cards = allowedCards || listClassCards(grades)
@@ -86,6 +88,9 @@ export function StaffChatDesk({
     setStudent(next)
     setBusy(true)
     setMobilePane('room')
+    if (next.gradeId && next.sectionId) {
+      setSectionKey(`${next.gradeId}:${next.sectionId}`)
+    }
     const role = user.role === 'sub' ? 'sub' : user.role === 'madam' ? 'madam' : 'teacher'
     const result = await openThread({
       staffId: user.id,
@@ -103,6 +108,15 @@ export function StaffChatDesk({
     setThread(result.thread)
     onThreadsRefresh?.()
   }
+
+  useEffect(() => {
+    if (!initialStudent?.id) return
+    setMode('browse')
+    openStudent(initialStudent)
+    onInitialStudentConsumed?.()
+    // intentionally only when a new pending student arrives
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialStudent?.id])
 
   async function openHistoryThread(item) {
     setMode('history')

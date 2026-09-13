@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Field } from './Modal'
 import { useI18n } from '../i18n/I18nContext'
 import { readPhoto } from '../lib/photo'
@@ -5,6 +6,7 @@ import { genderLabel } from '../i18n/helpers'
 
 export function StudentForm({ form, setForm, error, setError }) {
   const { t, tx } = useI18n()
+  const [showPassword, setShowPassword] = useState(true)
 
   async function onPhoto(e) {
     const file = e.target.files?.[0]
@@ -46,6 +48,49 @@ export function StudentForm({ form, setForm, error, setError }) {
         <Field label={t('studentName')}>
           <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
         </Field>
+      </div>
+
+      <section className="student-login-box">
+        <h4>{t('portalLoginTitle')}</h4>
+        <p className="muted">{t('portalLoginHint')}</p>
+        <div className="form-grid">
+          <Field label={t('username')}>
+            <input
+              type="text"
+              value={form.loginUsername || ''}
+              onChange={(e) => setForm({ ...form, loginUsername: e.target.value })}
+              placeholder={t('studentUsernamePh')}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              required
+            />
+          </Field>
+          <Field label={t('studentPassword')}>
+            <div className="password-field">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={form.loginPassword || ''}
+                onChange={(e) => setForm({ ...form, loginPassword: e.target.value })}
+                placeholder={t('studentPasswordHint')}
+                required
+                minLength={3}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-pressed={showPassword}
+                aria-label={showPassword ? t('hidePassword') : t('showPassword')}
+              >
+                {showPassword ? t('hidePassword') : t('showPassword')}
+              </button>
+            </div>
+          </Field>
+        </div>
+      </section>
+
+      <div className="form-grid">
         <Field label={t('age')}>
           <input type="number" min="1" max="30" value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} />
         </Field>
@@ -54,14 +99,13 @@ export function StudentForm({ form, setForm, error, setError }) {
             <option value="">{t('select')}</option>
             <option value="Boy">{t('boy')}</option>
             <option value="Girl">{t('girl')}</option>
-            <option value="Other">{t('other')}</option>
           </select>
         </Field>
         <Field label={t('dob')}>
           <input type="date" value={form.dob} onChange={(e) => setForm({ ...form, dob: e.target.value })} />
         </Field>
         <Field label={t('nic')}>
-          <input value={form.nic} onChange={(e) => setForm({ ...form, nic: e.target.value })} placeholder="35202-xxxxxxx-x" />
+          <input value={form.nic} onChange={(e) => setForm({ ...form, nic: e.target.value })} placeholder={t('nicPh')} />
         </Field>
         <Field label={t('rollNo')}>
           <input value={form.rollNo} onChange={(e) => setForm({ ...form, rollNo: e.target.value })} />
@@ -85,7 +129,7 @@ export function StudentForm({ form, setForm, error, setError }) {
           <input value={form.parentName} onChange={(e) => setForm({ ...form, parentName: e.target.value })} />
         </Field>
         <Field label={t('parentPhone')}>
-          <input value={form.parentPhone} onChange={(e) => setForm({ ...form, parentPhone: e.target.value })} placeholder="03xx-xxxxxxx" />
+          <input value={form.parentPhone} onChange={(e) => setForm({ ...form, parentPhone: e.target.value })} placeholder={t('phonePh')} />
         </Field>
         <Field label={t('parentEmail')}>
           <input type="email" value={form.parentEmail} onChange={(e) => setForm({ ...form, parentEmail: e.target.value })} />
@@ -106,16 +150,15 @@ export function StudentForm({ form, setForm, error, setError }) {
   )
 }
 
-export function StudentView({ student }) {
+export function StudentView({ student, onEditLogin }) {
   const { t, lang } = useI18n()
+  const [showPassword, setShowPassword] = useState(false)
   const rows = [
     [t('age'), student.age],
     [t('gender'), genderLabel(student.gender, t)],
     [t('dob'), student.dob],
     [t('nic'), student.nic],
     [t('rollNo'), student.rollNo],
-    [t('studentLogin'), student.loginEmail],
-    [t('studentPassword'), student.loginPassword],
     [t('bloodGroup'), student.bloodGroup],
     [t('allergies'), student.allergies],
     [t('parentGuardian'), student.parentName],
@@ -144,6 +187,38 @@ export function StudentView({ student }) {
           </p>
         </div>
       </div>
+
+      <section className="student-login-box">
+        <h4>{t('portalLoginTitle')}</h4>
+        <p className="muted">{t('portalLoginHint')}</p>
+        <dl className="detail-list student-login-details">
+          <div>
+            <dt>{t('username')}</dt>
+            <dd>{student.loginEmail || '—'}</dd>
+          </div>
+          <div>
+            <dt>{t('studentPassword')}</dt>
+            <dd className="student-password-dd">
+              <span>{showPassword ? student.loginPassword || '—' : '••••••••'}</span>
+              {student.loginPassword ? (
+                <button
+                  type="button"
+                  className="linkish"
+                  onClick={() => setShowPassword((v) => !v)}
+                >
+                  {showPassword ? t('hidePassword') : t('showPassword')}
+                </button>
+              ) : null}
+            </dd>
+          </div>
+        </dl>
+        {onEditLogin ? (
+          <button type="button" className="ghost" onClick={onEditLogin}>
+            {t('editPortalLogin')}
+          </button>
+        ) : null}
+      </section>
+
       <dl className="detail-list">
         {rows.map(([label, value]) => (
           <div key={label}>

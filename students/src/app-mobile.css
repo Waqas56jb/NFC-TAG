@@ -750,6 +750,39 @@ body {
   font-size: 16px;
 }
 
+.login-sheet .password-field {
+  position: relative;
+  display: block;
+}
+
+.login-sheet .password-field input {
+  width: 100%;
+  padding-inline-end: 4.5rem;
+}
+
+.login-sheet .password-toggle {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(28, 42, 34, 0.08);
+  color: #1c2a22;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.login-sheet .password-toggle:hover,
+.login-sheet .password-toggle:focus-visible {
+  background: rgba(28, 42, 34, 0.14);
+  outline: none;
+}
+
 /* ——— Groups — WhatsApp-style full-bleed chat ——— */
 .phone-app .wa-shell {
   display: flex !important;

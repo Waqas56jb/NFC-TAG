@@ -226,8 +226,8 @@ export function createNftagApi(supabase) {
     addActivity,
     emailTaken,
     fail,
-    async loginStaff(email, password) {
-      const e = email.trim().toLowerCase()
+    async loginStaff(username, password) {
+      const e = String(username || '').trim().toLowerCase()
       const q = `?select=*&email=eq.${encodeURIComponent(e)}&password=eq.${encodeURIComponent(password)}`
       const madam = await rest.get('nfctag_madam', q)
       if (madam.error) return fail(madam.error)
@@ -241,14 +241,14 @@ export function createNftagApi(supabase) {
         }
         return { ok: true, session: { id: sub.data[0].id, role: 'sub' } }
       }
-      return { ok: false, error: 'Email or password is incorrect.' }
+      return { ok: false, error: 'Username or password is incorrect.' }
     },
-    async loginTeacher(email, password) {
-      const e = email.trim().toLowerCase()
+    async loginTeacher(username, password) {
+      const e = String(username || '').trim().toLowerCase()
       const q = `?select=*&email=eq.${encodeURIComponent(e)}&password=eq.${encodeURIComponent(password)}`
       const res = await rest.get('nfctag_teachers', q)
       if (res.error) return fail(res.error)
-      if (!res.data?.[0]) return { ok: false, error: 'Email or password is incorrect.' }
+      if (!res.data?.[0]) return { ok: false, error: 'Username or password is incorrect.' }
       if (res.data[0].status === 'blocked') {
         return { ok: false, error: 'This teacher login is blocked. Ask Principal to restore it.' }
       }
@@ -263,10 +263,12 @@ export function createNftagApi(supabase) {
       }
     },
     async insertTeacher(payload, user) {
-      if (await emailTaken(payload.email)) return { ok: false, error: 'This email is already in use.' }
+      const username = String(payload.email || '').trim().toLowerCase()
+      if (!username) return { ok: false, error: 'Username is required.' }
+      if (await emailTaken(username)) return { ok: false, error: 'This username is already in use.' }
       const { error } = await supabase.from('nfctag_teachers').insert({
         name: payload.name.trim(),
-        email: payload.email.trim().toLowerCase(),
+        email: username,
         password: payload.password,
         subject: payload.subject.trim(),
         status: 'active',
@@ -274,7 +276,7 @@ export function createNftagApi(supabase) {
         created_by_name: user.name,
       })
       if (error) return fail(error)
-      await addActivity(user, 'created', 'teacher', payload.name.trim(), `Created teacher login ${payload.email}`)
+      await addActivity(user, 'created', 'teacher', payload.name.trim(), `Created teacher login ${username}`)
       return { ok: true }
     },
     async setTeacherStatus(id, status, user, name) {
@@ -291,15 +293,17 @@ export function createNftagApi(supabase) {
     },
     async insertSubUser(payload, user) {
       if (user.role !== 'madam') return { ok: false, error: 'Only Principal can create sub-users.' }
-      if (await emailTaken(payload.email)) return { ok: false, error: 'This email is already in use.' }
+      const username = String(payload.email || '').trim().toLowerCase()
+      if (!username) return { ok: false, error: 'Username is required.' }
+      if (await emailTaken(username)) return { ok: false, error: 'This username is already in use.' }
       const { error } = await supabase.from('nfctag_sub_users').insert({
         name: payload.name.trim(),
-        email: payload.email.trim().toLowerCase(),
+        email: username,
         password: payload.password,
         status: 'active',
       })
       if (error) return fail(error)
-      await addActivity(user, 'created', 'sub-user', payload.name.trim(), `Created sub-user login ${payload.email}`)
+      await addActivity(user, 'created', 'sub-user', payload.name.trim(), `Created sub-user login ${username}`)
       return { ok: true }
     },
     async setSubUserStatus(id, status, user, name) {
@@ -317,10 +321,12 @@ export function createNftagApi(supabase) {
       return { ok: true }
     },
     async updateMadam(id, { name, email, password }, user) {
-      if (await emailTaken(email, id)) return { ok: false, error: 'This email is already in use.' }
+      const username = String(email || '').trim().toLowerCase()
+      if (!username) return { ok: false, error: 'Username is required.' }
+      if (await emailTaken(username, id)) return { ok: false, error: 'This username is already in use.' }
       const { error } = await supabase
         .from('nfctag_madam')
-        .update({ name: name.trim(), email: email.trim().toLowerCase(), password, updated_at: new Date().toISOString() })
+        .update({ name: name.trim(), email: username, password, updated_at: new Date().toISOString() })
         .eq('id', id)
       if (error) return fail(error)
       await addActivity(user, 'updated', 'madam', name.trim(), 'Updated Principal account details')
@@ -388,13 +394,22 @@ export function createNftagApi(supabase) {
     },
     async insertStudent(gradeId, sectionId, payload, user, classLabel) {
       if (!payload.name?.trim()) return { ok: false, error: 'Student name is required.' }
-      const row = this.studentRow(gradeId, sectionId, payload, user)
-      const base = String(payload.name || 'student')
+      const username = String(payload.loginUsername || payload.loginEmail || '')
+        .trim()
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '.')
-        .replace(/^\.+|\.+$/g, '') || 'student'
-      row.login_email = `${base}@student.nfctag.edu`
-      row.password = 'Student@11'
+        .replace(/\s+/g, '')
+      if (!username) return { ok: false, error: 'Username is required.' }
+      const password = String(payload.loginPassword || '').trim() || 'Student1'
+      const taken = await supabase
+        .from('nfctag_students')
+        .select('id')
+        .eq('login_email', username)
+        .maybeSingle()
+      if (taken.data) return { ok: false, error: 'This username is already in use.' }
+
+      const row = this.studentRow(gradeId, sectionId, payload, user)
+      row.login_email = username
+      row.password = password
 
       const preferred = normalizeTagCode(payload.tagCode)
       let lastError = null
@@ -419,6 +434,9 @@ export function createNftagApi(supabase) {
         }
         // Unique collision — try another elegant code
         if (error.code === '23505' || /duplicate|unique/i.test(String(error.message || ''))) {
+          if (/login_email/i.test(String(error.message || ''))) {
+            return { ok: false, error: 'This username is already in use.' }
+          }
           continue
         }
         return fail(error)
@@ -459,13 +477,32 @@ export function createNftagApi(supabase) {
       const row = this.studentRow(payload.gradeId, payload.sectionId, payload, user)
       delete row.created_by
       delete row.created_by_name
-      const { error } = await supabase
+      const username = String(payload.loginUsername || payload.loginEmail || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '')
+      if (!username) return { ok: false, error: 'Username is required.' }
+      const taken = await supabase
+        .from('nfctag_students')
+        .select('id')
+        .eq('login_email', username)
+        .maybeSingle()
+      if (taken.data && taken.data.id !== id) {
+        return { ok: false, error: 'This username is already in use.' }
+      }
+      row.login_email = username
+      const password = String(payload.loginPassword || '').trim()
+      if (!password) return { ok: false, error: 'Password is required.' }
+      row.password = password
+      const { data, error } = await supabase
         .from('nfctag_students')
         .update({ ...row, updated_at: new Date().toISOString() })
         .eq('id', id)
+        .select('*')
+        .single()
       if (error) return fail(error)
       await addActivity(user, 'updated', 'student', payload.name.trim(), 'Updated student details')
-      return { ok: true }
+      return { ok: true, student: mapStudent(data) }
     },
     async removeStudent(id, user, name) {
       const { error } = await supabase.from('nfctag_students').delete().eq('id', id)

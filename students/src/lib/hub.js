@@ -110,12 +110,12 @@ export function createHub(rest) {
       if (res.error) return { ok: false, error: res.error.message, announcements: [] }
       return { ok: true, announcements: (res.data || []).map(mapAnnounce) }
     },
-    async loginStudent(email, password) {
-      const e = email.trim().toLowerCase()
+    async loginStudent(username, password) {
+      const e = String(username || '').trim().toLowerCase()
       const res = await rest.get('nfctag_students', `?select=*&login_email=eq.${encodeURIComponent(e)}&limit=1`)
       if (res.error) return { ok: false, error: res.error.message }
       const row = (res.data || [])[0]
-      if (!row || row.password !== password) return { ok: false, error: 'Email or password is incorrect.' }
+      if (!row || row.password !== password) return { ok: false, error: 'Username or password is incorrect.' }
       return { ok: true, student: mapStudent(row) }
     },
     async fetchStudent(id) {

@@ -46,11 +46,11 @@ try {
   // CASCADE clears dependent FKs in one shot
   await client.query(`TRUNCATE TABLE ${names.map((n) => `"${n}"`).join(', ')} RESTART IDENTITY CASCADE`)
 
-  // Single Madam account for empty real start
+  // Single Principal account for empty real start
   await client.query(
     `INSERT INTO nfctag_madam (name, email, password)
      VALUES ($1, $2, $3)`,
-    ['Principal Madam', 'madam@nfctag.edu', 'Madam@Test1'],
+    ['Principal', 'principal', 'Principal1'],
   )
 
   await client.query('COMMIT')
@@ -70,7 +70,7 @@ for (const [k, v] of Object.entries(counts)) {
   console.log(`  ${k}: ${v}`)
 }
 console.log('')
-console.log('Madam login (empty school): madam@nfctag.edu / Madam@Test1')
-console.log('Add real classes, teachers, and students from Madam Desk.')
+console.log('Principal login (empty school): principal / Principal1')
+console.log('Add real classes, teachers, and students from Administration.')
 
 await client.end()

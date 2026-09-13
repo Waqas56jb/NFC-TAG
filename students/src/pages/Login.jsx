@@ -18,8 +18,9 @@ export function Login() {
   const { t, tx } = useI18n()
   const [params] = useSearchParams()
   const asParent = params.get('role') === 'parent'
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -36,7 +37,7 @@ export function Login() {
     setBusy(true)
     setError('')
     try {
-      const result = await login(email, password)
+      const result = await login(username, password)
       if (!result.ok) setError(tx(result.error))
     } finally {
       setBusy(false)
@@ -61,25 +62,38 @@ export function Login() {
           <h3>{signIn}</h3>
           <p className="muted login-hint">{hint}</p>
           <fieldset disabled={busy} className="modal-fields">
-            <Field label={t('email')}>
+            <Field label={t('username')}>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t('emailPlaceholder')}
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder={t('usernamePlaceholder')}
                 autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
                 required
               />
             </Field>
             <Field label={t('password')}>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t('yourPassword')}
-                autoComplete="current-password"
-                required
-              />
+              <div className="password-field">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t('yourPassword')}
+                  autoComplete="current-password"
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-pressed={showPassword}
+                  aria-label={showPassword ? t('hidePassword') : t('showPassword')}
+                >
+                  {showPassword ? t('hidePassword') : t('showPassword')}
+                </button>
+              </div>
             </Field>
           </fieldset>
           {error ? <div className="error">{error}</div> : null}

@@ -12,7 +12,7 @@ function formatWhen(iso, lang) {
 export function StudentLeavesPanel({ leaves, onReturn, onReview, t, lang, readOnly = false }) {
   const [busyId, setBusyId] = useState('')
 
-  if (!leaves?.length) return <div className="card empty">{t('noStudentLeaveLog')}</div>
+  if (!leaves?.length) return <div className="empty soft">{t('noStudentLeaveLog')}</div>
 
   async function markReturn(id) {
     if (busyId || readOnly) return

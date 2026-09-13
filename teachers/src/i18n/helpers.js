@@ -1,5 +1,6 @@
 export const ERROR_KEYS = {
   'Email or password is incorrect.': 'errBadLogin',
+  'Username or password is incorrect.': 'errBadLogin',
   'This teacher login is blocked. Ask Principal to restore it.': 'errTeacherBlocked',
   'This teacher login is blocked. Ask Madam to restore it.': 'errTeacherBlocked',
   'Could not load school data.': 'errBoot',

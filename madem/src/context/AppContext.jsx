@@ -188,7 +188,15 @@ export function AppProvider({ children }) {
   async function updateStudent(id, payload) {
     const current = store.students.find((s) => s.id === id)
     if (!current) return { ok: false, error: t('errStudentMissing') }
-    return withBusy(async () => after(await api.patchStudent(id, { ...current, ...payload }, user), t('toastStudentUpdated')))
+    const merged = {
+      ...current,
+      ...payload,
+      loginUsername: payload.loginUsername || payload.loginEmail || current.loginEmail || '',
+      loginPassword: payload.loginPassword || current.loginPassword || '',
+      gradeId: payload.gradeId || current.gradeId,
+      sectionId: payload.sectionId || current.sectionId,
+    }
+    return withBusy(async () => after(await api.patchStudent(id, merged, user), t('toastStudentUpdated')))
   }
 
   async function deleteStudent(id) {

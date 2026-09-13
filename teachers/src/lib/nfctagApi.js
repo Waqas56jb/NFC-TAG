@@ -225,8 +225,8 @@ export function createNftagApi(supabase) {
     addActivity,
     emailTaken,
     fail,
-    async loginStaff(email, password) {
-      const e = email.trim().toLowerCase()
+    async loginStaff(username, password) {
+      const e = String(username || '').trim().toLowerCase()
       const q = `?select=*&email=eq.${encodeURIComponent(e)}&password=eq.${encodeURIComponent(password)}`
       const madam = await rest.get('nfctag_madam', q)
       if (madam.error) return fail(madam.error)
@@ -240,14 +240,14 @@ export function createNftagApi(supabase) {
         }
         return { ok: true, session: { id: sub.data[0].id, role: 'sub' } }
       }
-      return { ok: false, error: 'Email or password is incorrect.' }
+      return { ok: false, error: 'Username or password is incorrect.' }
     },
-    async loginTeacher(email, password) {
-      const e = email.trim().toLowerCase()
+    async loginTeacher(username, password) {
+      const e = String(username || '').trim().toLowerCase()
       const q = `?select=*&email=eq.${encodeURIComponent(e)}&password=eq.${encodeURIComponent(password)}`
       const res = await rest.get('nfctag_teachers', q)
       if (res.error) return fail(res.error)
-      if (!res.data?.[0]) return { ok: false, error: 'Email or password is incorrect.' }
+      if (!res.data?.[0]) return { ok: false, error: 'Username or password is incorrect.' }
       if (res.data[0].status === 'blocked') {
         return { ok: false, error: 'This teacher login is blocked. Ask Principal to restore it.' }
       }

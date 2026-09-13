@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { NfcLeaveScan, StudentLeavesPanel } from '../components/StudentLeavesPanel'
+import { ClassLeaveTapBoard } from '../components/ClassLeaveTapBoard'
+import { StudentLeavesPanel } from '../components/StudentLeavesPanel'
 import { useTeacher } from '../context/TeacherContext'
 import { useI18n } from '../i18n/I18nContext'
 import { prettyDate, prettyTime, todayKey } from '../lib/school'
@@ -14,7 +15,21 @@ function hoursBetween(start, end) {
 }
 
 export function Desk() {
-  const { teacher, classes, teacherDays, teacherLeaves, studentLeaves, checkIn, checkOut, requestLeave, scanStudentLeave, markStudentReturned, reviewStudentLeave, logout } = useTeacher()
+  const {
+    teacher,
+    school,
+    classes,
+    teacherDays,
+    teacherLeaves,
+    studentLeaves,
+    checkIn,
+    checkOut,
+    requestLeave,
+    toggleStudentRestroom,
+    markStudentReturned,
+    reviewStudentLeave,
+    logout,
+  } = useTeacher()
   const { t, lang } = useI18n()
   const [form, setForm] = useState({ startDate: todayKey(), endDate: todayKey(), reason: '' })
   const [busy, setBusy] = useState('')
@@ -28,6 +43,11 @@ export function Desk() {
   const myClassKeys = useMemo(
     () => new Set((classes || []).map((c) => `${c.gradeId}:${c.sectionId}`)),
     [classes],
+  )
+  const classStudents = useMemo(
+    () =>
+      (school.students || []).filter((s) => myClassKeys.has(`${s.gradeId}:${s.sectionId}`)),
+    [school.students, myClassKeys],
   )
   const classPasses = useMemo(
     () =>
@@ -109,7 +129,18 @@ export function Desk() {
           <h3>{t('studentPassTitle')}</h3>
           <p className="muted">{t('studentPassHint')}</p>
         </div>
-        <NfcLeaveScan onScan={scanStudentLeave} t={t} />
+        <ClassLeaveTapBoard
+          students={classStudents}
+          classCards={classes}
+          leaves={classPasses}
+          onToggle={(studentId, leaveType) => toggleStudentRestroom(studentId, leaveType)}
+          t={t}
+          lang={lang}
+        />
+        <div className="desk-panel-head" style={{ marginTop: 16 }}>
+          <h3>{t('studentLeaveLogTitle')}</h3>
+          <p className="muted">{t('studentLeaveLogHint')}</p>
+        </div>
         <StudentLeavesPanel
           leaves={classPasses}
           onReturn={markStudentReturned}

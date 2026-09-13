@@ -151,6 +151,7 @@ export function Layout() {
             <strong>{t('brand')}</strong>
           </div>
           <div className="head-actions">
+            <LanguageToggle compact />
             <AnnounceBell
               announcements={announcements}
               user={user}

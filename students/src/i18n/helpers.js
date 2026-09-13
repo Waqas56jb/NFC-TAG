@@ -7,6 +7,7 @@ export function genderLabel(value, t) {
 
 export const ERROR_KEYS = {
   'Email or password is incorrect.': 'errBadLogin',
+  'Username or password is incorrect.': 'errBadLogin',
   'Could not load school data.': 'errBoot',
   'Could not reach the school database. Refresh and try again.': 'errReachRetry',
   'Could not reach the school database.': 'errReach',
